@@ -1423,6 +1423,48 @@ function computeCoherence(recipe, outletId) {
 
 const tempLabels = ["Brand Lock", "On-Brand", "Flexible", "Adventurous", "Wild Card"];
 
+// === MOOD SYSTEM ===
+// Each mood adjusts the brand profile: [pace, energy, warmth, sophistication, playfulness]
+const moods = [
+  { id: "intimate", name: "Intimate Evening", icon: "🕯️", nudge: [-0.2, -0.2, +0.2, +0.15, -0.1], desc: "Candlelight, slow, warm" },
+  { id: "highenergy", name: "High Energy", icon: "⚡", nudge: [+0.25, +0.3, 0, -0.1, +0.2], desc: "Fast cuts, loud, alive" },
+  { id: "brunch", name: "Sunday Brunch", icon: "☀️", nudge: [-0.1, -0.1, +0.15, 0, +0.1], desc: "Bright, easy, relaxed" },
+  { id: "latenight", name: "Late Night", icon: "🌙", nudge: [0, +0.1, -0.1, +0.1, +0.1], desc: "Neon, dark, atmospheric" },
+  { id: "luxury", name: "Luxury", icon: "✨", nudge: [-0.15, -0.1, +0.1, +0.3, -0.2], desc: "Slow, refined, aspirational" },
+  { id: "fun", name: "Casual Fun", icon: "🎉", nudge: [+0.1, +0.15, +0.1, -0.2, +0.3], desc: "Playful, approachable, real" },
+  { id: "cinematic", name: "Cinematic", icon: "🎬", nudge: [-0.1, 0, 0, +0.2, -0.15], desc: "Filmic, dramatic, composed" },
+  { id: "raw", name: "Raw & Real", icon: "📹", nudge: [+0.1, +0.1, +0.1, -0.25, +0.1], desc: "Documentary, unpolished, honest" },
+];
+
+// Apply mood nudge to a brand target
+function applyMood(brandTarget, moodId) {
+  if (!moodId) return brandTarget;
+  const mood = moods.find(m => m.id === moodId);
+  if (!mood) return brandTarget;
+  return brandTarget.map((v, i) => Math.max(0, Math.min(1, v + (mood.nudge[i] || 0))));
+}
+
+// === USAGE LEARNING ===
+// Tracks style frequency: { [styleId]: count }
+// Boosts styles the user keeps picking
+function loadUsageData() {
+  try { return JSON.parse(localStorage.getItem("pad-usage") || "{}"); } catch { return {}; }
+}
+function saveUsageData(data) {
+  try { localStorage.setItem("pad-usage", JSON.stringify(data)); } catch {}
+}
+function recordStyleUsage(styleIds) {
+  const data = loadUsageData();
+  for (const id of styleIds) { data[id] = (data[id] || 0) + 1; }
+  saveUsageData(data);
+}
+function getUsageBoost(styleId) {
+  const data = loadUsageData();
+  const count = data[styleId] || 0;
+  // Diminishing returns: log scale, max ~0.3 bonus
+  return count > 0 ? Math.min(0.3, Math.log(count + 1) * 0.1) : 0;
+}
+
 // Persistence helper
 function usePersistedState(key, defaultVal) {
   const [state, setState] = useState(() => {
@@ -1577,9 +1619,9 @@ const durationTiers = [
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Pick a style from specific categories for a given outlet, respecting the smart engine
-function pickStyleForShot(outletId, catIds, existing, temperature) {
+function pickStyleForShot(outletId, catIds, existing, temperature, moodId) {
   const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
-  const brandTarget = brandTargets[outletId];
+  const brandTarget = applyMood(brandTargets[outletId], moodId);
   const pool = [];
   for (const catId of catIds) {
     const cat = categories.find(c => c.id === catId);
@@ -1596,12 +1638,13 @@ function pickStyleForShot(outletId, catIds, existing, temperature) {
     const brand = cosine(prof, brandTarget);
     let harmony = 1;
     if (existingProfiles.length > 0) harmony = cosine(prof, centroid(existingProfiles));
-    return brand * 0.5 + harmony * 0.5;
+    const usage = getUsageBoost(s[0]);
+    return brand * 0.45 + harmony * 0.45 + usage * 0.1;
   });
   return weightedPick(safe, scores, temperature || 0.4);
 }
 
-function generateStoryboard(outletId, temp, tierId) {
+function generateStoryboard(outletId, temp, tierId, moodId) {
   const structure = adStructures[outletId];
   if (!structure) return null;
   const tier = durationTiers.find(t => t.id === tierId) || durationTiers[1];
@@ -1628,9 +1671,9 @@ function generateStoryboard(outletId, temp, tierId) {
   // Build shots
   const shots = beats.map((beatKey, i) => {
     const beat = shotBeats[beatKey];
-    const camera = pickStyleForShot(outletId, beat.catPri, allPicked, temp);
+    const camera = pickStyleForShot(outletId, beat.catPri, allPicked, temp, moodId);
     if (camera) allPicked.push(camera);
-    const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp);
+    const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp, moodId);
     if (support) allPicked.push(support);
 
     // Venue-aware shot descriptions
@@ -1762,6 +1805,7 @@ export default function App() {
   const [storyboard, setStoryboard] = useState(null);
   const [sbOutlet, setSbOutlet] = useState(null);
   const [sbTier, setSbTier] = useState(null);
+  const [sbMood, setSbMood] = useState(null);
 
   const selectedOutlet = path[0] ? outlets.find(o => o.id === path[0]) : null;
   const selectedCat = path[1] ? categories.find(c => c.id === path[1]) : null;
@@ -1778,6 +1822,7 @@ export default function App() {
     setMode(null);
     setPath([]);
     setGenOutlet(null);
+    setSbMood(null);
   }, []);
 
   const showToast = useCallback((msg) => {
@@ -1790,6 +1835,7 @@ export default function App() {
       if (prev.find(s => s.style[0] === style[0])) return prev;
       return [...prev, { style, subject: "", why: "" }];
     });
+    recordStyleUsage([style[0]]);
     showToast(`+ #${style[0]} added`);
   }, [showToast]);
 
@@ -1879,6 +1925,12 @@ export default function App() {
             style={{ ...inputStyle, width: "100%", padding: "12px 16px", fontSize: 14, borderRadius: 10, background: "#111", border: "1px solid #222" }}
           />
         </div>
+        {/* Learning indicator */}
+        {(() => { const d = loadUsageData(); const total = Object.values(d).reduce((a, b) => a + b, 0); return total > 0 ? (
+          <div style={{ marginTop: 12, fontSize: 10, color: "#333", textAlign: "center" }}>
+            🧠 {total} interaction{total !== 1 ? "s" : ""} learned · generation adapts to your taste
+          </div>
+        ) : null; })()}
         <Toast />
       </Shell>
     );
@@ -2100,16 +2152,37 @@ export default function App() {
     );
   }
 
-  // STORYBOARD MODE — pick duration
-  if (mode === "storyboard" && sbOutlet && !sbTier) {
+  // STORYBOARD MODE — pick mood
+  if (mode === "storyboard" && sbOutlet && !sbMood) {
     const ol = outlets.find(o => o.id === sbOutlet);
     return (
-      <Shell title={`${ol.icon} ${ol.name} — Pick Length`} crumbs={[]} onBack={() => setSbOutlet(null)} onHome={goHome}>
+      <Shell title={`${ol.icon} ${ol.name} — Set the Mood`} crumbs={[]} onBack={() => setSbOutlet(null)} onHome={goHome}>
+        <div style={grid2}>
+          {moods.map(m => (
+            <Box key={m.id} onClick={() => setSbMood(m.id)}>
+              <span style={{ fontSize: 28 }}>{m.icon}</span>
+              <div style={{ fontSize: 14, fontWeight: 600, marginTop: 6 }}>{m.name}</div>
+              <div style={{ fontSize: 11, color: "#666", marginTop: 4 }}>{m.desc}</div>
+            </Box>
+          ))}
+        </div>
+        <Toast />
+      </Shell>
+    );
+  }
+
+  // STORYBOARD MODE — pick duration
+  if (mode === "storyboard" && sbOutlet && sbMood && !sbTier) {
+    const ol = outlets.find(o => o.id === sbOutlet);
+    const moodObj = moods.find(m => m.id === sbMood);
+    return (
+      <Shell title={`${ol.icon} ${ol.name} — ${moodObj?.icon} ${moodObj?.name}`} crumbs={[]} onBack={() => setSbMood(null)} onHome={goHome}>
+        <div style={{ fontSize: 12, color: "#555", marginBottom: 16 }}>Pick a length</div>
         <div style={grid2}>
           {durationTiers.map(t => {
             const beats = adStructures[sbOutlet].beatsByTier[t.id];
             return (
-              <Box key={t.id} onClick={() => { setSbTier(t.id); setStoryboard(generateStoryboard(sbOutlet, temperature, t.id)); }}>
+              <Box key={t.id} onClick={() => { setSbTier(t.id); setStoryboard(generateStoryboard(sbOutlet, temperature, t.id, sbMood)); }}>
                 <div style={{ fontSize: 18, fontWeight: 700 }}>{t.desc}</div>
                 <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4 }}>{t.label}</div>
                 <div style={{ fontSize: 11, color: "#666", marginTop: 6 }}>{beats.length} shots</div>
@@ -2128,11 +2201,12 @@ export default function App() {
     const tier = durationTiers.find(t => t.id === sbTier);
     return (
       <Shell title={`${ol.icon} ${ol.name} — ${tier.label} Ad`} crumbs={[]} onBack={() => { setSbTier(null); setStoryboard(null); }} onHome={goHome}>
-        {/* Header: subject + duration */}
+        {/* Header: subject + duration + mood */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 18, fontWeight: 600 }}>"{storyboard.hook}"</div>
           <div style={{ fontSize: 12, color: "#666", marginTop: 6 }}>
             Subject: <span style={{ color: "#AAA" }}>{storyboard.subject}</span> · {storyboard.totalDuration}s · {storyboard.shotCount} shots
+            {sbMood && (() => { const m = moods.find(x => x.id === sbMood); return m ? <span> · {m.icon} {m.name}</span> : null; })()}
           </div>
         </div>
 
@@ -2147,7 +2221,7 @@ export default function App() {
 
         {/* Action buttons */}
         <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
-          <button onClick={() => setStoryboard(generateStoryboard(sbOutlet, temperature, sbTier))} style={generateBtn}>🎲 Reroll</button>
+          <button onClick={() => setStoryboard(generateStoryboard(sbOutlet, temperature, sbTier, sbMood))} style={generateBtn}>🎲 Reroll</button>
           <button onClick={() => {
             storyboard.shots.forEach(sh => {
               sh.styles.forEach(s => {
@@ -2156,6 +2230,9 @@ export default function App() {
                 }
               });
             });
+            // Record usage for learning
+            const allIds = storyboard.shots.flatMap(sh => sh.styles.map(s => s[0]));
+            recordStyleUsage(allIds);
             showToast(`Added ${storyboard.shots.reduce((a, sh) => a + sh.styles.length, 0)} styles to shot list`);
           }} style={generateBtn}>📋 → Shot List</button>
           <button onClick={() => {
