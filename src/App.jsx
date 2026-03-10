@@ -1254,10 +1254,10 @@ const equipment = [
   { id: "ursa", name: "URSA 12K", cat: "camera", tags: ["cinema", "hero", "detail", "slow-mo"], desc: "Blackmagic cinema camera" },
   { id: "r5c", name: "Canon R5C", cat: "camera", tags: ["hybrid", "photo", "video", "handheld", "texture"], desc: "Hybrid photo/video" },
   { id: "zv4", name: "Sony ZV-4", cat: "camera", tags: ["compact", "handheld", "bts", "energy", "pov"], desc: "Compact video camera" },
-  { id: "mavic4", name: "Mavic 4 Pro", cat: "camera", tags: ["aerial", "drone", "space", "exterior"], desc: "100MP aerial platform" },
-  { id: "mini4", name: "Mini 4 Pro", cat: "camera", tags: ["aerial", "drone", "interior", "compact"], desc: "Lightweight drone" },
-  { id: "matrice", name: "Matrice 4TD", cat: "camera", tags: ["aerial", "thermal", "mapping"], desc: "Thermal + RTK mapping" },
-  { id: "osmo360", name: "Osmo 360 8K", cat: "camera", tags: ["360", "immersive", "space", "vr"], desc: "360° 8K camera" },
+  { id: "mavic4", name: "Mavic 4 Pro", cat: "camera", tags: ["aerial", "drone", "space", "exterior", "cinematic"], desc: "100MP cinematic aerial" },
+  { id: "mini4", name: "Mini 4 Pro", cat: "camera", tags: ["aerial", "drone", "interior", "compact", "indoor"], desc: "Lightweight indoor drone" },
+  { id: "matrice", name: "Matrice 4TD", cat: "camera", tags: ["aerial", "thermal", "mapping", "rtk", "photogrammetry"], desc: "Thermal + RTK mapping platform" },
+  { id: "osmo360", name: "Osmo 360 8K", cat: "camera", tags: ["360", "immersive", "space", "vr", "virtual-tour"], desc: "360° 8K camera" },
   // Lenses
   { id: "1635", name: "Canon 16–35mm L", cat: "lens", tags: ["wide", "space", "architecture", "reveal"], desc: "Wide angle zoom" },
   { id: "2470", name: "Canon 24–70mm L", cat: "lens", tags: ["standard", "hero", "versatile", "portrait"], desc: "Standard workhorse" },
@@ -1330,6 +1330,17 @@ const styleGearHints = [
   [/interview|testimonial/i, ["wireless", "lav", "shotgun"]],
   [/music|band|live/i, ["multi-channel", "stereo", "music"]],
   [/turntable|product.*spin/i, ["turntable", "product"]],
+  [/drone.*interior|mini.*drone|indoor.*drone/i, ["drone", "interior", "compact"]],
+  [/mavic|100mp|high.?res|ortho/i, ["drone", "aerial"]],
+  [/matrice|thermal|mapping|rtk/i, ["aerial", "thermal", "mapping"]],
+  [/fpv|immersive.*fly|fly.?through/i, ["drone", "aerial"]],
+  [/orbit.*drone|drone.*orbit|reveal.*flight|aerial.*orbit/i, ["drone", "aerial"]],
+  [/360|immersive|virtual.*tour|spatial/i, ["360", "immersive"]],
+  [/point.*cloud|photogrammetry|3d.*scan|digital.*twin|gaussian/i, ["photogrammetry", "3d"]],
+  [/thermal|heat.*map|infrared|night.*vision/i, ["thermal"]],
+  [/multi.?cam|dual.?cam|triple|simultaneous|synced/i, ["multi-channel"]],
+  [/bts|behind.*scene|setup|gear.*lay|how.*we.*made/i, ["handheld", "compact"]],
+  [/poll|swipe|interactive|tiktok|stitch|duet|carousel/i, ["compact", "handheld"]],
 ];
 
 function getGearForShot(beatKey, styles, limit = 6) {
@@ -1713,13 +1724,13 @@ function fuzzyMatch(query, text) {
 // Shot beats define the narrative arc of an ad
 // Each beat type has: role, typical duration range, which style categories to pull from
 const shotBeats = {
-  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12], catSec: [3, 4, 22],   desc: "Thumb-stopper. Extreme detail, dramatic action." },
-  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3, 19], catSec: [4, 5],    desc: "Pull back, show context. Transition into the space." },
-  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3], catSec: [4, 10],      desc: "The money shot. What you're selling." },
-  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12, 22], catSec: [6, 3],   desc: "Supporting texture. Sensory close-up." },
-  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5, 23], catSec: [11, 3],  desc: "Movement, people, life. The vibe." },
-  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4, 19], catSec: [10, 3, 20], desc: "Architecture, ambiance, the room itself." },
-  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1], catSec: [10, 2],      desc: "Logo reveal + CTA. End on brand." },
+  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12, 22], catSec: [3, 4, 24],     desc: "Thumb-stopper. Extreme detail, dramatic action." },
+  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3, 19], catSec: [4, 5, 20],  desc: "Pull back, show context. Transition into the space." },
+  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3], catSec: [4, 10, 23],    desc: "The money shot. What you're selling." },
+  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12, 22], catSec: [6, 3, 21], desc: "Supporting texture. Sensory close-up." },
+  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5, 23, 24], catSec: [11, 3, 25], desc: "Movement, people, life. The vibe." },
+  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4, 19, 20], catSec: [10, 3, 21], desc: "Architecture, ambiance, the room itself." },
+  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1], catSec: [10, 2, 25],    desc: "Logo reveal + CTA. End on brand." },
 };
 
 // Outlet-specific ad structures — beats scale with duration tier
@@ -2707,6 +2718,24 @@ export default function App() {
         <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
           {renderMiniBoard(storyboard, "Treatment A", "#6A8FBF")}
           {renderMiniBoard(compareBoard, "Treatment B", "#BFA64A")}
+        </div>
+        {/* Pick winner */}
+        <div style={{ marginTop: 20, padding: "16px 0", borderTop: "1px solid #1A1A1A" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10, textAlign: "center" }}>Pick the winner — the system learns your preference</div>
+          <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
+            <button onClick={() => {
+              const ids = storyboard.shots.flatMap(sh => sh.styles.map(s => s[0]));
+              recordStyleUsage(ids); recordStyleUsage(ids); // double-weight winner
+              setCompareBoard(null); setMode("storyboard");
+              showToast("✓ Treatment A wins — preferences updated");
+            }} style={{ ...generateBtn, color: "#6A8FBF", borderColor: "#2A3A5A" }}>🏆 A wins</button>
+            <button onClick={() => {
+              const ids = compareBoard.shots.flatMap(sh => sh.styles.map(s => s[0]));
+              recordStyleUsage(ids); recordStyleUsage(ids);
+              setStoryboard(compareBoard); setCompareBoard(null); setMode("storyboard");
+              showToast("✓ Treatment B wins — preferences updated");
+            }} style={{ ...generateBtn, color: "#BFA64A", borderColor: "#5A4A1A" }}>🏆 B wins</button>
+          </div>
         </div>
         <Toast />
       </Shell>
