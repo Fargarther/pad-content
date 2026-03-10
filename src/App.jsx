@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 
 const outlets = [
   { id: "tl", name: "Tin Lizard", sub: "Bar & Grill", icon: "🦎" },
@@ -1264,6 +1264,28 @@ function computeCoherence(recipe, outletId) {
 
 const tempLabels = ["Brand Lock", "On-Brand", "Flexible", "Adventurous", "Wild Card"];
 
+// Persistence helper
+function usePersistedState(key, defaultVal) {
+  const [state, setState] = useState(() => {
+    try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : defaultVal; }
+    catch { return defaultVal; }
+  });
+  useEffect(() => { try { localStorage.setItem(key, JSON.stringify(state)); } catch {} }, [key, state]);
+  return [state, setState];
+}
+
+// Fuzzy search
+function fuzzyMatch(query, text) {
+  const q = query.toLowerCase();
+  const t = text.toLowerCase();
+  if (t.includes(q)) return 2;
+  let qi = 0;
+  for (let ti = 0; ti < t.length && qi < q.length; ti++) {
+    if (t[ti] === q[qi]) qi++;
+  }
+  return qi === q.length ? 1 : 0;
+}
+
 // === STORYBOARD ENGINE ===
 
 // Shot beats define the narrative arc of an ad
@@ -1562,10 +1584,12 @@ export default function App() {
   const [genOutlet, setGenOutlet] = useState(null);
   const [recipe, setRecipe] = useState(null);
   const [locked, setLocked] = useState({});
-  const [shotList, setShotList] = useState([]); // array of { style: [id,name,outlets], subject: "", why: "" }
+  const [shotList, setShotList] = usePersistedState("pad-shotlist", []); // array of { style: [id,name,outlets], subject: "", why: "" }
   const [toast, setToast] = useState(null);
-  const [temperature, setTemperature] = useState(0.4); // 0-1
-  const [savedRecipes, setSavedRecipes] = useState([]); // { name, outlet, recipe, coherence, timestamp }
+  const [temperature, setTemperature] = usePersistedState("pad-temp", 0.4); // 0-1
+  const [savedRecipes, setSavedRecipes] = usePersistedState("pad-saved", []); // { name, outlet, recipe, coherence, timestamp }
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchOutlet, setSearchOutlet] = useState(null); // null = all outlets
   const [savingName, setSavingName] = useState(null); // string when save dialog is open
   const [storyboard, setStoryboard] = useState(null);
   const [sbOutlet, setSbOutlet] = useState(null);
@@ -1726,6 +1750,75 @@ export default function App() {
             <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Storyboard</div>
             <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Generate a full ad</div>
           </Box>
+        </div>
+        {/* Search bar on home */}
+        <div style={{ marginTop: 24 }}>
+          <input
+            value={searchQuery}
+            onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length > 0) setMode("search"); }}
+            placeholder="Search 1,000 styles..."
+            style={{ ...inputStyle, width: "100%", padding: "12px 16px", fontSize: 14, borderRadius: 10, background: "#111", border: "1px solid #222" }}
+          />
+        </div>
+        <Toast />
+      </Shell>
+    );
+  }
+
+  // SEARCH MODE
+  if (mode === "search") {
+    const q = searchQuery.trim();
+    const results = q.length > 0 ? S.map(s => {
+      const score = fuzzyMatch(q, s[1]);
+      // Also match category name
+      const cat = categories.find(c => s[0] >= c.range[0] && s[0] <= c.range[1]);
+      const catScore = cat ? fuzzyMatch(q, cat.name) * 0.5 : 0;
+      const totalScore = Math.max(score, catScore);
+      // Filter by outlet if selected
+      if (searchOutlet) {
+        const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[searchOutlet];
+        if (!s[2].includes(key)) return null;
+      }
+      return totalScore > 0 ? { style: s, score: totalScore } : null;
+    }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 50) : [];
+
+    return (
+      <Shell title="Search" crumbs={[]} onBack={() => { setMode(null); setSearchQuery(""); setSearchOutlet(null); }}>
+        <input
+          value={searchQuery}
+          onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length === 0) setMode(null); }}
+          placeholder="Search styles..."
+          autoFocus
+          style={{ ...inputStyle, width: "100%", padding: "12px 16px", fontSize: 14, borderRadius: 10, background: "#111", border: "1px solid #222", marginBottom: 12 }}
+        />
+        {/* Outlet filter chips */}
+        <div style={{ display: "flex", gap: 6, marginBottom: 16, flexWrap: "wrap" }}>
+          <button onClick={() => setSearchOutlet(null)} style={{ ...generateBtn, fontSize: 11, padding: "4px 12px", background: !searchOutlet ? "#222" : "#1A1A1A", borderColor: !searchOutlet ? "#444" : "#333" }}>All</button>
+          {outlets.map(o => (
+            <button key={o.id} onClick={() => setSearchOutlet(searchOutlet === o.id ? null : o.id)} style={{ ...generateBtn, fontSize: 11, padding: "4px 12px", background: searchOutlet === o.id ? "#222" : "#1A1A1A", borderColor: searchOutlet === o.id ? "#444" : "#333" }}>
+              {o.icon} {o.name}
+            </button>
+          ))}
+        </div>
+        {q.length > 0 && <div style={{ fontSize: 12, color: "#555", marginBottom: 12 }}>{results.length} result{results.length !== 1 ? "s" : ""}</div>}
+        <div style={grid3}>
+          {results.map(({ style: s }) => {
+            const cat = categories.find(c => s[0] >= c.range[0] && s[0] <= c.range[1]);
+            const outletIcons = s[2].split("").map(k => { const o = outlets.find(x => x.id === outletKey[k]); return o?.icon; }).filter(Boolean);
+            return (
+              <div key={s[0]} style={{ background: inList(s[0]) ? "#111814" : "#111", border: `1px solid ${inList(s[0]) ? "#1E2E1E" : "#1E1E1E"}`, borderRadius: 8, padding: "12px 14px", display: "flex", flexDirection: "column", gap: 6 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span style={{ fontSize: 11, color: "#555", fontFamily: "monospace" }}>#{s[0]}</span>
+                    {cat && <span style={{ fontSize: 9, color: "#444" }}>{cat.name}</span>}
+                  </div>
+                  <AddBtn style={s} />
+                </div>
+                <div style={{ fontSize: 13, fontWeight: 500, lineHeight: 1.4 }}>{s[1]}</div>
+                {outletIcons.length > 0 && <div style={{ display: "flex", gap: 3 }}>{outletIcons.map((icon, j) => <span key={j} style={{ fontSize: 11 }}>{icon}</span>)}</div>}
+              </div>
+            );
+          })}
         </div>
         <Toast />
       </Shell>
@@ -1960,6 +2053,30 @@ export default function App() {
             navigator.clipboard?.writeText(text);
             showToast("Copied storyboard");
           }} style={generateBtn}>📄 Copy</button>
+        </div>
+
+        {/* Visual timeline */}
+        <div style={{ marginBottom: 20, background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: "14px 16px", overflowX: "auto" }}>
+          <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>Timeline</div>
+          <div style={{ display: "flex", gap: 2, minWidth: "100%", height: 48 }}>
+            {storyboard.shots.map((sh) => {
+              const pct = (sh.duration / storyboard.totalDuration) * 100;
+              const beatColors = { HOOK: "#BF6A4A", REVEAL: "#6A8FBF", HERO: "#BFA64A", DETAIL: "#8A7ABF", ENERGY: "#6ABF6A", SPACE: "#4A9EBF", CLOSER: "#AAA" };
+              const color = beatColors[sh.beat] || "#555";
+              return (
+                <div key={sh.num} style={{ width: `${pct}%`, minWidth: 24, background: `${color}15`, border: `1px solid ${color}40`, borderRadius: 4, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, transition: "all 0.2s" }}
+                  title={`Shot ${sh.num}: ${sh.beat} — ${sh.duration}s`}
+                >
+                  <span style={{ fontSize: 9, color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.5px" }}>{sh.beat.slice(0, 3)}</span>
+                  <span style={{ fontSize: 8, color: "#555", fontFamily: "monospace" }}>{sh.duration}s</span>
+                </div>
+              );
+            })}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: 6 }}>
+            <span style={{ fontSize: 9, color: "#444", fontFamily: "monospace" }}>0s</span>
+            <span style={{ fontSize: 9, color: "#444", fontFamily: "monospace" }}>{storyboard.totalDuration}s</span>
+          </div>
         </div>
 
         {/* Shot sequence */}
