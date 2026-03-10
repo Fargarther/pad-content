@@ -26,6 +26,13 @@ const categories = [
   { id: 16, name: "Analog & Retro Aesthetics", range: [851, 900] },
   { id: 17, name: "Seasonal & Event-Driven", range: [901, 950] },
   { id: 18, name: "Logo & Brand Integration", range: [951, 1000] },
+  { id: 19, name: "Aerial & Drone", range: [1001, 1040] },
+  { id: 20, name: "360° & Immersive", range: [1041, 1065] },
+  { id: 21, name: "Photogrammetry & 3D", range: [1066, 1090] },
+  { id: 22, name: "Thermal & Specialty Imaging", range: [1091, 1110] },
+  { id: 23, name: "Multi-Camera & Coverage", range: [1111, 1135] },
+  { id: 24, name: "Interactive & Social-Native", range: [1136, 1165] },
+  { id: 25, name: "BTS & Process Content", range: [1166, 1200] },
 ];
 
 // Compact data: [id, name, outlets_string] where outlets_string uses t=TL w=WB n=ND p=PAD
@@ -1030,6 +1037,213 @@ const S = [
 [998,"Logo vinyl sticker peel-and-place","tnp"],
 [999,"Logo chalk drawing time-lapse","tp"],
 [1000,"Logo firework burst","tp"],
+// === AERIAL & DRONE (1001-1040) ===
+[1001,"Reveal flight ascending from subject to property wide","twp"],
+[1002,"Orbit drone circle around building exterior","p"],
+[1003,"Top-down overhead drone food flat lay on patio","tw"],
+[1004,"Fly-through entrance doorway into venue","twp"],
+[1005,"Parallax altitude shift low-to-high reveal","tp"],
+[1006,"Cable cam style linear tracking across dining room","tw"],
+[1007,"Dronie pullback from subject selfie-style","tn"],
+[1008,"Rooftop descent to street level entrance","p"],
+[1009,"Parking lot to entrance approach flight","p"],
+[1010,"River-to-property establishing shot","p"],
+[1011,"Golden hour exterior orbit with lens flare","p"],
+[1012,"Night flight neon exterior glow","tp"],
+[1013,"Interior drone low-altitude table skim","tw"],
+[1014,"Crowd fly-over during live music event","tp"],
+[1015,"Kitchen pass-through aerial thread-the-needle","tw"],
+[1016,"Mini drone intimate indoor orbit around dish","tw"],
+[1017,"Matrice high-altitude property establishing shot","p"],
+[1018,"Follow-drone tracking guest walking to entrance","p"],
+[1019,"Vertical ascent from plate on patio to skyline","twp"],
+[1020,"Drone hyperlapse sunset to neon transition","p"],
+[1021,"Waypoint programmed cinematic flight path","p"],
+[1022,"Mavic 4 Pro 100MP aerial still capture","p"],
+[1023,"Point of interest orbit around marquee sign","p"],
+[1024,"Boomerang drone quick orbit snap-back","tp"],
+[1025,"Split-level drone interior-exterior transition","twp"],
+[1026,"Tracking shot following server through patio","tw"],
+[1027,"Overhead drone mapping shot of full property","p"],
+[1028,"Low-altitude buzz past outdoor signage","tp"],
+[1029,"Spiral ascent from cocktail on rooftop","twp"],
+[1030,"Drone dolly zoom altitude change with zoom","p"],
+[1031,"FPV-style fast immersive venue fly-through","tp"],
+[1032,"Slow cinematic approach to lit entrance at dusk","p"],
+[1033,"Aerial time-lapse parking lot filling up","p"],
+[1034,"Drone rack focus foreground tree to building","p"],
+[1035,"Reveal flight over river to property at golden hour","p"],
+[1036,"Vertical bird's eye descent through open ceiling","twp"],
+[1037,"Aerial panoramic stitch multiple angles composited","p"],
+[1038,"Chase-cam following a car into the valet","p"],
+[1039,"Drone static hover establishing shot night","p"],
+[1040,"Low orbit around patio fire pit","twp"],
+// === 360° & IMMERSIVE (1041-1065) ===
+[1041,"360° full venue walkthrough virtual tour","twnp"],
+[1042,"360° tiny planet effect of venue exterior","p"],
+[1043,"360° time-lapse venue filling up","tp"],
+[1044,"360° bar seat POV full surround","t"],
+[1045,"360° kitchen chaos immersive BTS","tw"],
+[1046,"360° dining room ambiance capture","tw"],
+[1047,"360° stage view from performer perspective","t"],
+[1048,"360° reframed vertical crop with motion track","twnp"],
+[1049,"360° overcapture slow pan reveal","twp"],
+[1050,"360° casino floor immersive sweep","p"],
+[1051,"360° booth POV intimate dinner perspective","tw"],
+[1052,"360° entrance-to-seat guest journey","twp"],
+[1053,"360° ceiling look-up chandelier/fixture reveal","wp"],
+[1054,"360° parking-to-table complete guest experience","p"],
+[1055,"VR-ready stereoscopic venue capture","p"],
+[1056,"360° event night full atmosphere capture","tp"],
+[1057,"360° chef's perspective behind the line","tw"],
+[1058,"360° slow rotation on tripod ambient loop","twp"],
+[1059,"360° bullet time freeze orbiting guest table","wp"],
+[1060,"Interactive 360° embedded in social story","tp"],
+[1061,"360° rooftop/exterior panoramic night","p"],
+[1062,"360° split screen top-bottom dual perspective","twp"],
+[1063,"360° zoom-to-flat reframe punch-in","twnp"],
+[1064,"360° transition between venues walking path","p"],
+[1065,"Spatial audio 360° with directional sound","twp"],
+// === PHOTOGRAMMETRY & 3D (1066-1090) ===
+[1066,"Point cloud render of venue interior","twp"],
+[1067,"3D scan fly-through of dining room","twp"],
+[1068,"Digital twin walkthrough of full property","p"],
+[1069,"Before-after 3D scan renovation comparison","p"],
+[1070,"Photogrammetry dish model 3D rotation","tw"],
+[1071,"3D model of signature cocktail rotating","tw"],
+[1072,"Wireframe-to-textured render transition","p"],
+[1073,"LiDAR depth map visualization of venue","p"],
+[1074,"3D floor plan animated walkthrough","p"],
+[1075,"Photogrammetry exterior model aerial composite","p"],
+[1076,"3D printed miniature of venue photograph","p"],
+[1077,"Point cloud particle explosion transition","tp"],
+[1078,"3D scan of bar back bottle display","tw"],
+[1079,"Digital twin comparison day vs night","p"],
+[1080,"Photogrammetry food model turntable spin","tw"],
+[1081,"3D venue model with camera path visualization","p"],
+[1082,"Gaussian splat render of venue interior","twp"],
+[1083,"3D depth effect parallax from scan data","twp"],
+[1084,"Cross-section 3D slice through building","p"],
+[1085,"Photogrammetry heritage documentation old vs new","p"],
+[1086,"3D animated logo floating in scanned venue","twp"],
+[1087,"Point cloud colorized artistic render","p"],
+[1088,"3D scan detail macro texture enhancement","wp"],
+[1089,"RTK precision mapping overhead ortho view","p"],
+[1090,"Photogrammetry timelapse of space transformation","p"],
+// === THERMAL & SPECIALTY IMAGING (1091-1110) ===
+[1091,"Thermal reveal of hot plate arriving at table","tw"],
+[1092,"Thermal vision of busy kitchen heat map","tw"],
+[1093,"Thermal to visible light transition on steak","tw"],
+[1094,"Thermal cocktail pour showing ice vs liquid","tw"],
+[1095,"Thermal full venue occupancy heat visualization","p"],
+[1096,"Thermal grill surface showing cook zones","t"],
+[1097,"Thermal handprint on cold glass reveal","tw"],
+[1098,"Thermal overhead dining room people density","p"],
+[1099,"UV fluorescent clean-check verification shot","wp"],
+[1100,"Infrared exterior architecture at night","p"],
+[1101,"Thermal coffee/soup steam visualization","twn"],
+[1102,"Thermal side-by-side raw vs cooked comparison","tw"],
+[1103,"Thermal time-lapse plate cooling","tw"],
+[1104,"Thermal bartender hands working in cold","t"],
+[1105,"Thermal oven door open heat blast","tw"],
+[1106,"Night vision security-cam aesthetic of venue","p"],
+[1107,"Thermal aerial property heat signature map","p"],
+[1108,"Spectral analysis color-shift food freshness","w"],
+[1109,"Thermal split screen hot kitchen cold dining","tw"],
+[1110,"Thermal cocktail ice sphere melting real-time","tw"],
+// === MULTI-CAMERA & COVERAGE (1111-1135) ===
+[1111,"Dual-cam synced wide and tight simultaneously","twp"],
+[1112,"Picture-in-picture kitchen cam over dining shot","tw"],
+[1113,"Triple-screen triptych three angles same moment","twp"],
+[1114,"Multicam live music full coverage wide mid close","tp"],
+[1115,"Synced timecode two-angle food plating","tw"],
+[1116,"Split-screen simultaneous kitchen and dining","tw"],
+[1117,"Reaction cam guest face during reveal","twp"],
+[1118,"GoPro locked-off plus gimbal roaming combo","tp"],
+[1119,"Overhead plus eye-level synced dual perspective","tw"],
+[1120,"Multi-angle cocktail build three cameras","tw"],
+[1121,"Security cam grid multi-venue simultaneous","p"],
+[1122,"Drone plus ground cam matched movement","twp"],
+[1123,"Multi-cam interview chef or bartender profile","tw"],
+[1124,"Picture-in-picture live reaction to food arrival","tw"],
+[1125,"Before-during-after triple frame same angle","twn"],
+[1126,"Synchronized slow-mo two angles of same pour","tw"],
+[1127,"Front-of-house back-of-house simultaneous split","twp"],
+[1128,"A-cam B-cam classic two-camera dialogue setup","tw"],
+[1129,"Multicam event coverage rapid-switch edit","tp"],
+[1130,"Phone plus cinema cam quality contrast","twp"],
+[1131,"Time-synced morning prep across all three outlets","p"],
+[1132,"Multi-angle single dish hero five cameras","tw"],
+[1133,"Crowd cam plus stage cam synced live music","t"],
+[1134,"Hidden cam plus hero cam candid-to-styled","tw"],
+[1135,"Multi-cam single take different framings composited","twp"],
+// === INTERACTIVE & SOCIAL-NATIVE (1136-1165) ===
+[1136,"Instagram poll A or B dish comparison","twn"],
+[1137,"Swipe left-right before-after comparison","twn"],
+[1138,"This or That story format drink choice","twn"],
+[1139,"Rate this dish 1-10 engagement prompt","twn"],
+[1140,"Duet-style side-by-side chef recreation","tw"],
+[1141,"TikTok stitch reaction to food reveal","tw"],
+[1142,"Caption this challenge user-generated prompt","twnp"],
+[1143,"Tag a friend who needs this prompt","twnp"],
+[1144,"Guess the ingredient interactive quiz","tw"],
+[1145,"Photo dump carousel multi-image story","twnp"],
+[1146,"Save for later bookmark-bait format","twn"],
+[1147,"POV ASMR first-person dining experience","twn"],
+[1148,"Green screen background swap venue trick","tp"],
+[1149,"Trending audio lip-sync with food timing","tn"],
+[1150,"Reply to this comment response format","twnp"],
+[1151,"Day in my life at the venue series","twp"],
+[1152,"What I eat in a day at Par-A-Dice","twnp"],
+[1153,"Five things you didn't know about this dish","twn"],
+[1154,"Show me your order challenge","twnp"],
+[1155,"POV walking in for the first time","twnp"],
+[1156,"Wait for it delayed payoff reveal","twn"],
+[1157,"Expectation vs reality positive surprise","twn"],
+[1158,"Unpopular opinion food debate starter","tw"],
+[1159,"Tier list ranking menu items","tw"],
+[1160,"Mini vlog casual story-style tour","twp"],
+[1161,"Text-on-screen confession format","twnp"],
+[1162,"Faceless creator hands-only food content","twn"],
+[1163,"Get ready with me going-out prep","tp"],
+[1164,"Quiet luxury aesthetic compilation","wp"],
+[1165,"Algorithm bait oddly satisfying food loop","twn"],
+// === BTS & PROCESS CONTENT (1166-1200) ===
+[1166,"Camera gear laid out pre-shoot flat lay","twnp"],
+[1167,"Setting up the shot behind-the-scenes","twnp"],
+[1168,"Raw to final side-by-side edit comparison","twnp"],
+[1169,"Color grading process screen recording","twp"],
+[1170,"Location scouting walkthrough pre-production","twnp"],
+[1171,"Moodboard to final shot comparison","twp"],
+[1172,"Client brief to finished product journey","p"],
+[1173,"Lighting setup reveal what it takes","twp"],
+[1174,"The photo vs the setup wide shot","twnp"],
+[1175,"Sound recording BTS capturing ASMR","tw"],
+[1176,"Chef prep hours before service BTS","tw"],
+[1177,"Bar setup opening ritual documentation","tw"],
+[1178,"Ingredient delivery unboxing arrival","tw"],
+[1179,"Recipe development test kitchen BTS","tw"],
+[1180,"Staff training moment captured","twnp"],
+[1181,"Equipment malfunction recovery story","twnp"],
+[1182,"The bloopers and outtakes reel","twnp"],
+[1183,"Time-lapse of entire photo shoot compressed","twnp"],
+[1184,"Drone setup and launch process","p"],
+[1185,"Before and after editing transformation","twnp"],
+[1186,"Director's commentary voiceover on footage","twp"],
+[1187,"Storyboard to final shot match comparison","twp"],
+[1188,"One shot fifty edits style variations","twnp"],
+[1189,"How we made this mini documentary","twp"],
+[1190,"Production day recap 60 second summary","twnp"],
+[1191,"Gear review in context of venue shoot","twnp"],
+[1192,"iPhone vs cinema camera comparison at venue","twnp"],
+[1193,"Audio mix breakdown layers of the edit","twp"],
+[1194,"Night vs day same angle comparison","twp"],
+[1195,"Speed vs quality content creation debate","twnp"],
+[1196,"The creative process from idea to post","twp"],
+[1197,"Thumbnail selection process and A/B test","twnp"],
+[1198,"Content calendar planning session BTS","p"],
+[1199,"Editing workflow screen capture sped up","twnp"],
+[1200,"Wrap day celebration and team shot","twnp"],
 ];
 
 const outletKey = { t: "tl", w: "wb", n: "nd", p: "pad" };
@@ -1230,6 +1444,13 @@ const catProfiles = {
   16: [0.4, 0.4, 0.7, 0.4, 0.5], // Analog/Retro — warm, nostalgic
   17: [0.6, 0.6, 0.5, 0.4, 0.5], // Seasonal — event energy
   18: [0.4, 0.3, 0.4, 0.6, 0.4], // Logo — brand-focused
+  19: [0.4, 0.5, 0.4, 0.7, 0.3], // Aerial/Drone — cinematic, grand
+  20: [0.3, 0.4, 0.5, 0.6, 0.3], // 360/Immersive — slow, explorative
+  21: [0.3, 0.3, 0.3, 0.8, 0.2], // Photogrammetry/3D — technical, premium
+  22: [0.4, 0.5, 0.4, 0.7, 0.4], // Thermal — novelty, technical
+  23: [0.5, 0.5, 0.5, 0.5, 0.3], // Multi-cam — neutral, coverage
+  24: [0.7, 0.7, 0.6, 0.2, 0.8], // Interactive/Social — fast, playful
+  25: [0.5, 0.5, 0.6, 0.3, 0.6], // BTS/Process — authentic, relatable
 };
 
 // Per-style energy nudges based on outlet mapping
@@ -1492,13 +1713,13 @@ function fuzzyMatch(query, text) {
 // Shot beats define the narrative arc of an ad
 // Each beat type has: role, typical duration range, which style categories to pull from
 const shotBeats = {
-  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12], catSec: [3, 4],      desc: "Thumb-stopper. Extreme detail, dramatic action." },
-  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3],  catSec: [4, 5],      desc: "Pull back, show context. Transition into the space." },
-  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3], catSec: [4, 10],     desc: "The money shot. What you're selling." },
-  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12], catSec: [6, 3],      desc: "Supporting texture. Sensory close-up." },
-  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5], catSec: [11, 3],     desc: "Movement, people, life. The vibe." },
-  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4], catSec: [10, 3],     desc: "Architecture, ambiance, the room itself." },
-  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1], catSec: [10, 2],     desc: "Logo reveal + CTA. End on brand." },
+  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12], catSec: [3, 4, 22],   desc: "Thumb-stopper. Extreme detail, dramatic action." },
+  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3, 19], catSec: [4, 5],    desc: "Pull back, show context. Transition into the space." },
+  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3], catSec: [4, 10],      desc: "The money shot. What you're selling." },
+  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12, 22], catSec: [6, 3],   desc: "Supporting texture. Sensory close-up." },
+  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5, 23], catSec: [11, 3],  desc: "Movement, people, life. The vibe." },
+  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4, 19], catSec: [10, 3, 20], desc: "Architecture, ambiance, the room itself." },
+  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1], catSec: [10, 2],      desc: "Logo reveal + CTA. End on brand." },
 };
 
 // Outlet-specific ad structures — beats scale with duration tier
@@ -1806,6 +2027,7 @@ export default function App() {
   const [sbOutlet, setSbOutlet] = useState(null);
   const [sbTier, setSbTier] = useState(null);
   const [sbMood, setSbMood] = useState(null);
+  const [compareBoard, setCompareBoard] = useState(null);
 
   const selectedOutlet = path[0] ? outlets.find(o => o.id === path[0]) : null;
   const selectedCat = path[1] ? categories.find(c => c.id === path[1]) : null;
@@ -1899,7 +2121,7 @@ export default function App() {
           <Box onClick={() => setMode("browse")}>
             <span style={{ fontSize: 32 }}>📂</span>
             <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Browse</div>
-            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Explore 1,000 styles</div>
+            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Explore 1,200 styles</div>
           </Box>
           <Box onClick={() => setMode("shotlist")}>
             <span style={{ fontSize: 32 }}>📋</span>
@@ -1921,7 +2143,7 @@ export default function App() {
           <input
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length > 0) setMode("search"); }}
-            placeholder="Search 1,000 styles..."
+            placeholder="Search 1,200 styles..."
             style={{ ...inputStyle, width: "100%", padding: "12px 16px", fontSize: 14, borderRadius: 10, background: "#111", border: "1px solid #222" }}
           />
         </div>
@@ -2252,6 +2474,12 @@ export default function App() {
             navigator.clipboard?.writeText(text);
             showToast("Copied storyboard");
           }} style={generateBtn}>📄 Copy</button>
+          <button onClick={() => setMode("treatment")} style={generateBtn}>📑 Treatment</button>
+          <button onClick={() => {
+            const sb2 = generateStoryboard(sbOutlet, temperature, sbTier, sbMood);
+            setCompareBoard(sb2);
+            setMode("compare");
+          }} style={generateBtn}>⚖️ Compare</button>
         </div>
 
         {/* Visual timeline */}
@@ -2330,6 +2558,156 @@ export default function App() {
           <div style={{ fontSize: 13, color: "#AAA", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{storyboard.caption}</div>
         </div>
 
+        <Toast />
+      </Shell>
+    );
+  }
+
+  // TREATMENT EXPORT VIEW — clean, print-ready
+  if (mode === "treatment" && storyboard && sbOutlet) {
+    const ol = outlets.find(o => o.id === sbOutlet);
+    const tier = durationTiers.find(t => t.id === sbTier);
+    const mood = moods.find(m => m.id === sbMood);
+    const beatColors = { HOOK: "#BF6A4A", REVEAL: "#6A8FBF", HERO: "#BFA64A", DETAIL: "#8A7ABF", ENERGY: "#6ABF6A", SPACE: "#4A9EBF", CLOSER: "#AAA" };
+    return (
+      <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#0A0A0A", color: "#E0E0E0", minHeight: "100vh", padding: "0" }}>
+        <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+        <style>{`@media print { body { background: #0A0A0A !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; } }`}</style>
+        {/* Top bar */}
+        <div style={{ display: "flex", justifyContent: "space-between", padding: "12px 24px", borderBottom: "1px solid #1A1A1A" }}>
+          <button onClick={() => setMode("storyboard")} style={{ ...backBtn, padding: 0, margin: 0 }}>← Back</button>
+          <button onClick={() => window.print()} style={generateBtn}>🖨️ Print</button>
+        </div>
+        {/* Title card */}
+        <div style={{ padding: "40px 32px 24px", borderBottom: "1px solid #1A1A1A" }}>
+          <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "2px", marginBottom: 8 }}>CONTENT TREATMENT — {ol.name}</div>
+          <div style={{ fontSize: 28, fontWeight: 700, lineHeight: 1.2, marginBottom: 12 }}>"{storyboard.hook}"</div>
+          <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 12, color: "#888" }}>
+            <span>{ol.icon} {ol.name}</span>
+            <span>·</span>
+            <span>Subject: {storyboard.subject}</span>
+            <span>·</span>
+            <span>{storyboard.totalDuration}s / {storyboard.shotCount} shots</span>
+            {mood && <><span>·</span><span>{mood.icon} {mood.name}</span></>}
+          </div>
+          <div style={{ fontSize: 10, color: "#333", marginTop: 16 }}>JSDetail LLC · Par-A-Dice Hotel Casino · Spec Treatment</div>
+        </div>
+        {/* Timeline strip */}
+        <div style={{ padding: "16px 32px", borderBottom: "1px solid #1A1A1A" }}>
+          <div style={{ display: "flex", gap: 2, height: 32 }}>
+            {storyboard.shots.map(sh => {
+              const pct = (sh.duration / storyboard.totalDuration) * 100;
+              const c = beatColors[sh.beat] || "#555";
+              return (<div key={sh.num} style={{ width: `${pct}%`, minWidth: 20, background: `${c}20`, border: `1px solid ${c}50`, borderRadius: 3, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <span style={{ fontSize: 8, color: c, fontWeight: 700 }}>{sh.num}</span>
+              </div>);
+            })}
+          </div>
+        </div>
+        {/* Shot cards */}
+        <div style={{ padding: "24px 32px" }}>
+          {storyboard.shots.map(sh => {
+            const c = beatColors[sh.beat] || "#555";
+            return (
+              <div key={sh.num} style={{ marginBottom: 20, paddingBottom: 20, borderBottom: "1px solid #151515" }}>
+                <div style={{ display: "flex", alignItems: "baseline", gap: 12, marginBottom: 8 }}>
+                  <span style={{ fontSize: 24, fontWeight: 700, color: "#222", fontFamily: "monospace" }}>{String(sh.num).padStart(2, "0")}</span>
+                  <span style={{ fontSize: 10, color: c, textTransform: "uppercase", letterSpacing: "1px", fontWeight: 600 }}>{sh.beat}</span>
+                  <span style={{ fontSize: 11, color: "#444", fontFamily: "monospace", marginLeft: "auto" }}>{sh.duration}s</span>
+                </div>
+                <div style={{ fontSize: 14, color: "#CCC", lineHeight: 1.6, marginBottom: 6 }}>{sh.action}</div>
+                {sh.intent && <div style={{ fontSize: 12, color: "#666", fontStyle: "italic", marginBottom: 6 }}>↳ {sh.intent}</div>}
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 4 }}>
+                  {sh.styles.map(s => (<span key={s[0]} style={{ fontSize: 9, color: "#555", background: "#0D0D0D", border: "1px solid #1A1A1A", borderRadius: 3, padding: "2px 6px" }}>#{s[0]} {s[1]}</span>))}
+                </div>
+                {sh.gear?.length > 0 && <div style={{ fontSize: 10, color: "#444", marginTop: 4 }}>🎬 {sh.gear.map(g => g.name).join(" · ")}</div>}
+              </div>
+            );
+          })}
+        </div>
+        {/* CTA + Caption */}
+        <div style={{ padding: "0 32px 24px", borderTop: "1px solid #1A1A1A", paddingTop: 24 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
+            <div>
+              <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Call to Action</div>
+              <div style={{ fontSize: 16, fontWeight: 600 }}>{storyboard.cta}</div>
+            </div>
+            <div>
+              <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Platform Caption</div>
+              <div style={{ fontSize: 12, color: "#999", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{storyboard.caption}</div>
+            </div>
+          </div>
+        </div>
+        {/* Footer */}
+        <div style={{ padding: "16px 32px", borderTop: "1px solid #1A1A1A", fontSize: 9, color: "#333", textAlign: "center" }}>
+          Spec portfolio project by JSDetail LLC. Not affiliated with Par-A-Dice Hotel Casino or Boyd Gaming.
+        </div>
+      </div>
+    );
+  }
+
+  // COMPARE VIEW — two storyboards side by side
+  if (mode === "compare" && storyboard && compareBoard && sbOutlet) {
+    const ol = outlets.find(o => o.id === sbOutlet);
+    const beatColors = { HOOK: "#BF6A4A", REVEAL: "#6A8FBF", HERO: "#BFA64A", DETAIL: "#8A7ABF", ENERGY: "#6ABF6A", SPACE: "#4A9EBF", CLOSER: "#AAA" };
+    const renderMiniBoard = (sb, label, accent) => (
+      <div style={{ flex: 1, minWidth: 280 }}>
+        <div style={{ fontSize: 10, color: accent, textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>{label}</div>
+        <div style={{ fontSize: 16, fontWeight: 600, marginBottom: 4 }}>"{sb.hook}"</div>
+        <div style={{ fontSize: 11, color: "#666", marginBottom: 12 }}>{sb.subject} · {sb.totalDuration}s · {sb.shotCount} shots</div>
+        {/* Mini timeline */}
+        <div style={{ display: "flex", gap: 1, height: 24, marginBottom: 12 }}>
+          {sb.shots.map(sh => {
+            const pct = (sh.duration / sb.totalDuration) * 100;
+            const c = beatColors[sh.beat] || "#555";
+            return (<div key={sh.num} style={{ width: `${pct}%`, minWidth: 14, background: `${c}20`, border: `1px solid ${c}40`, borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <span style={{ fontSize: 7, color: c, fontWeight: 700 }}>{sh.num}</span>
+            </div>);
+          })}
+        </div>
+        {/* Shot list */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {sb.shots.map(sh => {
+            const c = beatColors[sh.beat] || "#555";
+            return (
+              <div key={sh.num} style={{ background: "#111", border: "1px solid #1A1A1A", borderRadius: 6, padding: "10px 12px" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
+                  <span style={{ fontSize: 12, fontWeight: 700, color: "#333", fontFamily: "monospace" }}>{sh.num}</span>
+                  <span style={{ fontSize: 8, color: c, textTransform: "uppercase", letterSpacing: "0.5px", fontWeight: 600 }}>{sh.beat}</span>
+                  <span style={{ fontSize: 9, color: "#444", fontFamily: "monospace", marginLeft: "auto" }}>{sh.duration}s</span>
+                </div>
+                <div style={{ fontSize: 11, color: "#BBB", lineHeight: 1.4 }}>{sh.action}</div>
+                <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 4 }}>
+                  {sh.styles.map(s => (<span key={s[0]} style={{ fontSize: 8, color: "#555", background: "#0D0D0D", borderRadius: 2, padding: "1px 4px" }}>#{s[0]}</span>))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {/* CTA */}
+        <div style={{ marginTop: 10, fontSize: 12, color: "#888" }}>{sb.cta}</div>
+      </div>
+    );
+    return (
+      <Shell title={`${ol.icon} ${ol.name} — Compare Treatments`} crumbs={[]} onBack={() => { setCompareBoard(null); setMode("storyboard"); }} onHome={goHome}>
+        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
+          <button onClick={() => setCompareBoard(generateStoryboard(sbOutlet, temperature, sbTier, sbMood))} style={generateBtn}>🎲 Reroll B</button>
+          <button onClick={() => { setStoryboard(generateStoryboard(sbOutlet, temperature, sbTier, sbMood)); setCompareBoard(generateStoryboard(sbOutlet, temperature, sbTier, sbMood)); }} style={generateBtn}>🎲 Reroll Both</button>
+          <button onClick={() => {
+            let text = `⚖️ COMPARE: ${ol.name}\n\n`;
+            [["A", storyboard], ["B", compareBoard]].forEach(([label, sb]) => {
+              text += `— TREATMENT ${label} —\nHook: "${sb.hook}"\nSubject: ${sb.subject} · ${sb.totalDuration}s\n`;
+              sb.shots.forEach(sh => { text += `  ${sh.num}. ${sh.beat} (${sh.duration}s) — ${sh.action}\n`; });
+              text += `CTA: ${sb.cta}\n\n`;
+            });
+            navigator.clipboard?.writeText(text);
+            showToast("Copied comparison");
+          }} style={generateBtn}>📄 Copy Both</button>
+        </div>
+        <div style={{ display: "flex", gap: 16, flexWrap: "wrap" }}>
+          {renderMiniBoard(storyboard, "Treatment A", "#6A8FBF")}
+          {renderMiniBoard(compareBoard, "Treatment B", "#BFA64A")}
+        </div>
         <Toast />
       </Shell>
     );
