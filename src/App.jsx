@@ -2382,6 +2382,9 @@ function Shell({ title, crumbs, onBack, onHome, children }) {
       )}
       <h1 style={{ fontSize: 22, fontWeight: 700, margin: "0 0 20px", letterSpacing: "-0.3px" }}>{title}</h1>
       {children}
+      <div style={{ marginTop: 48, paddingTop: 16, borderTop: "1px solid #1A1A1A", fontSize: 10, color: "#333", lineHeight: 1.5, textAlign: "center" }}>
+        Spec portfolio project. Not affiliated with Par-A-Dice Hotel Casino or Boyd Gaming.
+      </div>
     </div>
   );
 }
