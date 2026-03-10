@@ -1902,7 +1902,7 @@ export default function App() {
     }).filter(Boolean).sort((a, b) => b.score - a.score).slice(0, 50) : [];
 
     return (
-      <Shell title="Search" crumbs={[]} onBack={() => { setMode(null); setSearchQuery(""); setSearchOutlet(null); }}>
+      <Shell title="Search" crumbs={[]} onBack={() => { setMode(null); setSearchQuery(""); setSearchOutlet(null); }} onHome={goHome}>
         <input
           value={searchQuery}
           onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length === 0) setMode(null); }}
@@ -1947,7 +1947,7 @@ export default function App() {
   // SAVED RECIPES VIEW
   if (mode === "saved") {
     return (
-      <Shell title="Saved Combos" crumbs={[]} onBack={goHome}>
+      <Shell title="Saved Combos" crumbs={[]} onBack={goHome} onHome={goHome}>
         {savedRecipes.length === 0 ? (
           <div style={{ color: "#555", fontSize: 14, padding: "40px 0", textAlign: "center" }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>💾</div>
@@ -1997,7 +1997,7 @@ export default function App() {
   // SHOT LIST VIEW
   if (mode === "shotlist") {
     return (
-      <Shell title="Shot List" crumbs={[]} onBack={goHome}>
+      <Shell title="Shot List" crumbs={[]} onBack={goHome} onHome={goHome}>
         {shotList.length === 0 ? (
           <div style={{ color: "#555", fontSize: 14, padding: "40px 0", textAlign: "center" }}>
             <div style={{ fontSize: 32, marginBottom: 12 }}>📋</div>
@@ -2085,7 +2085,7 @@ export default function App() {
   // STORYBOARD MODE — pick outlet
   if (mode === "storyboard" && !sbOutlet) {
     return (
-      <Shell title="Storyboard — Pick an Outlet" crumbs={[]} onBack={goHome}>
+      <Shell title="Storyboard — Pick an Outlet" crumbs={[]} onBack={goHome} onHome={goHome}>
         <div style={grid2}>
           {outlets.map(o => (
             <Box key={o.id} onClick={() => setSbOutlet(o.id)}>
@@ -2104,7 +2104,7 @@ export default function App() {
   if (mode === "storyboard" && sbOutlet && !sbTier) {
     const ol = outlets.find(o => o.id === sbOutlet);
     return (
-      <Shell title={`${ol.icon} ${ol.name} — Pick Length`} crumbs={[]} onBack={() => setSbOutlet(null)}>
+      <Shell title={`${ol.icon} ${ol.name} — Pick Length`} crumbs={[]} onBack={() => setSbOutlet(null)} onHome={goHome}>
         <div style={grid2}>
           {durationTiers.map(t => {
             const beats = adStructures[sbOutlet].beatsByTier[t.id];
@@ -2127,7 +2127,7 @@ export default function App() {
     const ol = outlets.find(o => o.id === sbOutlet);
     const tier = durationTiers.find(t => t.id === sbTier);
     return (
-      <Shell title={`${ol.icon} ${ol.name} — ${tier.label} Ad`} crumbs={[]} onBack={() => { setSbTier(null); setStoryboard(null); }}>
+      <Shell title={`${ol.icon} ${ol.name} — ${tier.label} Ad`} crumbs={[]} onBack={() => { setSbTier(null); setStoryboard(null); }} onHome={goHome}>
         {/* Header: subject + duration */}
         <div style={{ marginBottom: 20 }}>
           <div style={{ fontSize: 18, fontWeight: 600 }}>"{storyboard.hook}"</div>
@@ -2261,7 +2261,7 @@ export default function App() {
   // BROWSE MODE — Level 0: Outlets
   if (mode === "browse" && path.length === 0) {
     return (
-      <Shell title="Browse — Select an Outlet" crumbs={[]} onBack={goHome}>
+      <Shell title="Browse — Select an Outlet" crumbs={[]} onBack={goHome} onHome={goHome}>
         <div style={grid2}>
           {outlets.map(o => {
             const count = getStylesForOutlet(o.id).length;
@@ -2293,7 +2293,7 @@ export default function App() {
     })).filter(c => c.count > 0);
 
     return (
-      <Shell title={`${selectedOutlet.icon} ${selectedOutlet.name}`} crumbs={crumbs} onBack={back}>
+      <Shell title={`${selectedOutlet.icon} ${selectedOutlet.name}`} crumbs={crumbs} onBack={back} onHome={goHome}>
         <div style={{ fontSize: 13, color: "#888", marginBottom: 16 }}>
           {getStylesForOutlet(path[0]).length} total styles across {catsWithCounts.length} categories
         </div>
@@ -2314,7 +2314,7 @@ export default function App() {
   if (mode === "browse" && path.length === 2) {
     const styles = getStylesForOutletAndCategory(path[0], selectedCat);
     return (
-      <Shell title={selectedCat.name} crumbs={crumbs} onBack={back}>
+      <Shell title={selectedCat.name} crumbs={crumbs} onBack={back} onHome={goHome}>
         <div style={{ fontSize: 13, color: "#888", marginBottom: 16 }}>
           {styles.length} styles for {selectedOutlet.name}
         </div>
@@ -2356,14 +2356,19 @@ export default function App() {
   return null;
 }
 
-function Shell({ title, crumbs, onBack, children }) {
+function Shell({ title, crumbs, onBack, onHome, children }) {
   return (
     <div style={{ fontFamily: "'DM Sans', sans-serif", background: "#0A0A0A", color: "#E0E0E0", minHeight: "100vh", padding: "20px 24px" }}>
       <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
       <style>{`@keyframes fadeUp { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }`}</style>
-      {onBack && (
-        <button onClick={onBack} style={backBtn}>← Back</button>
-      )}
+      <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+        {onBack && (
+          <button onClick={onBack} style={backBtn}>← Back</button>
+        )}
+        {onHome && (
+          <button onClick={onHome} style={backBtn}>⌂ Home</button>
+        )}
+      </div>
       {crumbs.length > 0 && (
         <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 4, flexWrap: "wrap" }}>
           <span onClick={() => crumbs[0]?.action()} style={{ fontSize: 12, color: "#666", cursor: crumbs.length > 1 ? "pointer" : "default", textDecoration: crumbs.length > 1 ? "underline" : "none" }}>
