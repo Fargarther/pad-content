@@ -1034,6 +1034,93 @@ const S = [
 
 const outletKey = { t: "tl", w: "wb", n: "nd", p: "pad" };
 
+// === EQUIPMENT REGISTRY ===
+const equipment = [
+  // Cameras
+  { id: "ursa", name: "URSA 12K", cat: "camera", tags: ["cinema", "hero", "detail", "slow-mo"], desc: "Blackmagic cinema camera" },
+  { id: "r5c", name: "Canon R5C", cat: "camera", tags: ["hybrid", "photo", "video", "handheld", "texture"], desc: "Hybrid photo/video" },
+  { id: "zv4", name: "Sony ZV-4", cat: "camera", tags: ["compact", "handheld", "bts", "energy", "pov"], desc: "Compact video camera" },
+  { id: "mavic4", name: "Mavic 4 Pro", cat: "camera", tags: ["aerial", "drone", "space", "exterior"], desc: "100MP aerial platform" },
+  { id: "mini4", name: "Mini 4 Pro", cat: "camera", tags: ["aerial", "drone", "interior", "compact"], desc: "Lightweight drone" },
+  { id: "matrice", name: "Matrice 4TD", cat: "camera", tags: ["aerial", "thermal", "mapping"], desc: "Thermal + RTK mapping" },
+  { id: "osmo360", name: "Osmo 360 8K", cat: "camera", tags: ["360", "immersive", "space", "vr"], desc: "360° 8K camera" },
+  // Lenses
+  { id: "1635", name: "Canon 16–35mm L", cat: "lens", tags: ["wide", "space", "architecture", "reveal"], desc: "Wide angle zoom" },
+  { id: "2470", name: "Canon 24–70mm L", cat: "lens", tags: ["standard", "hero", "versatile", "portrait"], desc: "Standard workhorse" },
+  { id: "100400", name: "Canon 100–400mm L", cat: "lens", tags: ["telephoto", "compression", "detail", "candid"], desc: "Telephoto zoom" },
+  { id: "tse24", name: "Canon TS-E 24mm", cat: "lens", tags: ["tilt-shift", "architecture", "miniature", "space"], desc: "Tilt-shift wide" },
+  { id: "tse90", name: "Canon TS-E 90mm", cat: "lens", tags: ["tilt-shift", "product", "detail", "selective-focus"], desc: "Tilt-shift portrait" },
+  { id: "z85", name: "Zeiss 85mm", cat: "lens", tags: ["portrait", "hero", "bokeh", "beauty"], desc: "Zeiss prime" },
+  { id: "z100", name: "Zeiss 100mm", cat: "lens", tags: ["macro", "detail", "texture", "food"], desc: "Zeiss macro prime" },
+  { id: "2x", name: "2× Teleconverter", cat: "lens", tags: ["telephoto", "reach", "compression"], desc: "Doubles focal length" },
+  // Motion
+  { id: "rs3", name: "DJI RS3 Pro", cat: "motion", tags: ["gimbal", "tracking", "walk", "orbit", "follow"], desc: "3-axis cinema gimbal" },
+  { id: "weebill", name: "Weebill Gimbal", cat: "motion", tags: ["gimbal", "compact", "handheld", "energy"], desc: "Compact stabilizer" },
+  { id: "gvm", name: "GVM Slider", cat: "motion", tags: ["slider", "lateral", "push", "pull", "parallax"], desc: "Camera slider" },
+  { id: "turntable-lg", name: "Large Turntable", cat: "motion", tags: ["turntable", "orbit", "product", "360"], desc: "Motorized large turntable" },
+  { id: "turntable-sm", name: "Small Turntable", cat: "motion", tags: ["turntable", "product", "detail", "food"], desc: "Motorized small turntable" },
+  { id: "turntable-3", name: "Turntable 3", cat: "motion", tags: ["turntable", "product", "scanning"], desc: "Third motorized turntable" },
+  // Lighting
+  { id: "sl300", name: "Godox SL300", cat: "lighting", tags: ["key", "high-output", "hard", "spotlight"], desc: "300W LED" },
+  { id: "sl200bi", name: "Godox SL200BI", cat: "lighting", tags: ["bicolor", "key", "fill", "warm", "cool"], desc: "200W bi-color LED" },
+  { id: "sl100", name: "Godox SL100", cat: "lighting", tags: ["fill", "accent", "practical"], desc: "100W LED" },
+  { id: "godox200batt", name: "Godox 200W Battery", cat: "lighting", tags: ["portable", "location", "battery", "fill"], desc: "200W battery LED" },
+  { id: "fresnel", name: "Fresnel Modifiers ×2", cat: "lighting", tags: ["hard", "spotlight", "shaped", "dramatic"], desc: "Fresnel lens attachments" },
+  { id: "softbox", name: "Softboxes", cat: "lighting", tags: ["soft", "diffused", "beauty", "food", "fill"], desc: "Multiple softboxes" },
+  { id: "boom", name: "Boom Stands ×2", cat: "lighting", tags: ["overhead", "hair", "rim", "positioned"], desc: "Boom arm light stands" },
+  // Audio
+  { id: "f3", name: "Zoom F3", cat: "audio", tags: ["field", "compact", "32bit", "ambient"], desc: "32-bit float recorder" },
+  { id: "zoom6", name: "Zoom 6-Input", cat: "audio", tags: ["multi-channel", "interview", "music"], desc: "6-channel recorder" },
+  { id: "djmic2", name: "DJI Mic 2", cat: "audio", tags: ["wireless", "lav", "interview", "bts"], desc: "Wireless lavalier" },
+  { id: "tlm102", name: "Neumann TLM 102", cat: "audio", tags: ["vocal", "voiceover", "studio", "narration"], desc: "Large diaphragm condenser" },
+  { id: "km184", name: "Neumann KM184 ×2", cat: "audio", tags: ["stereo", "ambient", "music", "detail"], desc: "Matched pair SDC" },
+  { id: "smic3", name: "Deity S-Mic 3 ×2", cat: "audio", tags: ["shotgun", "dialogue", "directed", "boom"], desc: "Shotgun microphones" },
+  { id: "clippy", name: "Clippy EM258", cat: "audio", tags: ["stealth", "ambient", "asmr", "foley"], desc: "Matched pair mini mics" },
+  // Support
+  { id: "tripod", name: "Tripods (Benro/SmallRig)", cat: "support", tags: ["static", "locked", "photo", "video"], desc: "Standard tripods" },
+  { id: "heavytri", name: "Heavy Duty Tripod", cat: "support", tags: ["cinema", "heavy", "ursa", "stable"], desc: "100lb capacity" },
+  { id: "hihat", name: "Hi-Hat Tripod", cat: "support", tags: ["low", "ground", "worms-eye", "tabletop"], desc: "Low-profile mount" },
+  { id: "cart", name: "Production Cart", cat: "support", tags: ["transport", "staging", "mobile"], desc: "Foldable field cart" },
+];
+
+// Map shot beat types to equipment tag preferences (ordered by priority)
+const beatGearTags = {
+  hook:   { camera: ["cinema", "hybrid"], lens: ["macro", "detail", "wide"], motion: ["slider", "gimbal"], lighting: ["hard", "spotlight", "dramatic"], audio: ["foley", "asmr", "ambient"] },
+  reveal: { camera: ["cinema", "hybrid", "drone"], lens: ["wide", "standard"], motion: ["slider", "gimbal", "tracking"], lighting: ["bicolor", "key"], audio: ["ambient", "stereo"] },
+  hero:   { camera: ["cinema", "hybrid"], lens: ["standard", "portrait", "bokeh", "beauty"], motion: ["slider", "turntable"], lighting: ["key", "soft", "bicolor", "beauty"], audio: ["ambient", "foley"] },
+  detail: { camera: ["hybrid", "cinema"], lens: ["macro", "detail", "texture", "food", "selective-focus"], motion: ["slider", "turntable"], lighting: ["soft", "bicolor", "accent"], audio: ["foley", "asmr"] },
+  energy: { camera: ["compact", "hybrid", "handheld"], lens: ["standard", "wide", "versatile"], motion: ["gimbal", "compact", "handheld"], lighting: ["portable", "practical"], audio: ["wireless", "lav", "ambient", "stealth"] },
+  space:  { camera: ["drone", "aerial", "cinema", "360"], lens: ["wide", "tilt-shift", "architecture"], motion: ["gimbal", "tracking", "slider"], lighting: ["high-output", "key"], audio: ["stereo", "ambient"] },
+  closer: { camera: ["cinema", "hybrid"], lens: ["standard", "wide"], motion: ["slider"], lighting: ["key", "soft"], audio: ["ambient"] },
+};
+
+function getGearForBeat(beatKey, limit = 6) {
+  const prefs = beatGearTags[beatKey];
+  if (!prefs) return [];
+  const scored = equipment.map(eq => {
+    const catPrefs = prefs[eq.cat];
+    if (!catPrefs) return { eq, score: 0 };
+    let score = 0;
+    for (const tag of eq.tags) {
+      const idx = catPrefs.indexOf(tag);
+      if (idx >= 0) score += (catPrefs.length - idx);
+    }
+    return { eq, score };
+  }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
+  // Pick top items but max 1-2 per category
+  const result = [];
+  const catCount = {};
+  for (const { eq } of scored) {
+    const cc = catCount[eq.cat] || 0;
+    const maxPerCat = eq.cat === "camera" ? 1 : eq.cat === "lens" ? 1 : 1;
+    if (cc < maxPerCat && result.length < limit) {
+      result.push(eq);
+      catCount[eq.cat] = cc + 1;
+    }
+  }
+  return result;
+}
+
 function getStylesForOutlet(outletId) {
   const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
   return S.filter(s => s[2].includes(key));
@@ -1540,6 +1627,7 @@ function generateStoryboard(outletId, temp, tierId) {
       duration: durations[i],
       action,
       styles: [camera, support].filter(Boolean),
+      gear: getGearForBeat(beatKey),
     };
   });
 
@@ -1994,7 +2082,9 @@ export default function App() {
             storyboard.shots.forEach(sh => {
               text += `SHOT ${sh.num} — ${sh.beat} (${sh.duration}s)\n`;
               text += `  ${sh.action}\n`;
-              text += `  Styles: ${sh.styles.map(s => `#${s[0]} ${s[1]}`).join(", ")}\n\n`;
+              text += `  Styles: ${sh.styles.map(s => `#${s[0]} ${s[1]}`).join(", ")}\n`;
+              if (sh.gear?.length) text += `  Gear: ${sh.gear.map(g => g.name).join(", ")}\n`;
+              text += `\n`;
             });
             text += `CTA: ${storyboard.cta}\n\n`;
             text += `CAPTION:\n${storyboard.caption}`;
@@ -2046,6 +2136,22 @@ export default function App() {
                   </span>
                 ))}
               </div>
+              {/* Equipment */}
+              {sh.gear && sh.gear.length > 0 && (
+                <div style={{ marginTop: 8, paddingTop: 8, borderTop: "1px solid #1A1A1A" }}>
+                  <div style={{ fontSize: 9, color: "#555", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 4 }}>Gear</div>
+                  <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                    {sh.gear.map(g => {
+                      const catIcons = { camera: "📷", lens: "🔭", motion: "🎚️", lighting: "💡", audio: "🎙️", support: "🔩" };
+                      return (
+                        <span key={g.id} title={g.desc} style={{ fontSize: 10, color: "#666", background: "#0A0A0A", border: "1px solid #181818", borderRadius: 4, padding: "2px 6px" }}>
+                          {catIcons[g.cat] || "⚙️"} {g.name}
+                        </span>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           ))}
         </div>
