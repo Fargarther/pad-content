@@ -1094,31 +1094,103 @@ const beatGearTags = {
   closer: { camera: ["cinema", "hybrid"], lens: ["standard", "wide"], motion: ["slider"], lighting: ["key", "soft"], audio: ["ambient"] },
 };
 
-function getGearForBeat(beatKey, limit = 6) {
-  const prefs = beatGearTags[beatKey];
-  if (!prefs) return [];
+// Style name → extra gear tag hints (keyword matching)
+const styleGearHints = [
+  [/tilt.?shift|miniature/i, ["tilt-shift"]],
+  [/macro|extreme close|texture fill/i, ["macro", "detail"]],
+  [/orbit|360|circle/i, ["turntable", "gimbal", "360"]],
+  [/slider|lateral|parallax|push.?in|pull.?back/i, ["slider"]],
+  [/gimbal|steadicam|follow|tracking|walk/i, ["gimbal", "tracking"]],
+  [/drone|aerial|overhead.*(property|venue)|crane.*ascent/i, ["drone", "aerial"]],
+  [/handheld|documentary|pov/i, ["handheld", "compact"]],
+  [/slow.?mo|phantom|1000fps/i, ["cinema", "slow-mo"]],
+  [/locked|static/i, ["static"]],
+  [/low.*angle|worm|ground|hi.?hat/i, ["low", "ground"]],
+  [/asmr|crunch|sizzle|foley/i, ["asmr", "foley", "stealth"]],
+  [/bokeh|shallow/i, ["bokeh", "portrait"]],
+  [/wide.*shot|architecture|venue/i, ["wide", "architecture"]],
+  [/telephoto|compression|candid/i, ["telephoto", "compression"]],
+  [/neon|blacklight|uv/i, ["hard", "spotlight"]],
+  [/candle|single.*light|rim/i, ["accent", "practical"]],
+  [/voiceover|narration/i, ["vocal", "voiceover", "studio"]],
+  [/interview|testimonial/i, ["wireless", "lav", "shotgun"]],
+  [/music|band|live/i, ["multi-channel", "stereo", "music"]],
+  [/turntable|product.*spin/i, ["turntable", "product"]],
+];
+
+function getGearForShot(beatKey, styles, limit = 6) {
+  const prefs = beatGearTags[beatKey?.toLowerCase()] || beatGearTags.hero;
+  // Collect extra tags from styles
+  const extraTags = [];
+  for (const s of (styles || [])) {
+    const name = s[1] || "";
+    for (const [pattern, tags] of styleGearHints) {
+      if (pattern.test(name)) extraTags.push(...tags);
+    }
+  }
   const scored = equipment.map(eq => {
     const catPrefs = prefs[eq.cat];
-    if (!catPrefs) return { eq, score: 0 };
     let score = 0;
-    for (const tag of eq.tags) {
-      const idx = catPrefs.indexOf(tag);
-      if (idx >= 0) score += (catPrefs.length - idx);
+    if (catPrefs) {
+      for (const tag of eq.tags) {
+        const idx = catPrefs.indexOf(tag);
+        if (idx >= 0) score += (catPrefs.length - idx);
+      }
+    }
+    // Bonus from style hints
+    for (const tag of extraTags) {
+      if (eq.tags.includes(tag)) score += 3;
     }
     return { eq, score };
   }).filter(x => x.score > 0).sort((a, b) => b.score - a.score);
-  // Pick top items but max 1-2 per category
   const result = [];
   const catCount = {};
   for (const { eq } of scored) {
     const cc = catCount[eq.cat] || 0;
-    const maxPerCat = eq.cat === "camera" ? 1 : eq.cat === "lens" ? 1 : 1;
-    if (cc < maxPerCat && result.length < limit) {
+    if (cc < 1 && result.length < limit) {
       result.push(eq);
       catCount[eq.cat] = cc + 1;
     }
   }
   return result;
+}
+
+// === VENUE DETAILS (real Par-A-Dice specifics) ===
+const venueDetails = {
+  tl: {
+    dishes: ["Lizard Bites", "wood-fired pizza", "smash burger", "loaded nachos", "wings", "fish tacos", "pretzel bites", "onion rings"],
+    drinks: ["craft IPA on tap", "house margarita", "old fashioned", "Bud Light draft", "whiskey sour", "local craft beer flight"],
+    spaces: ["the bar top", "neon-lit booths", "the stage", "the patio", "the pool table corner", "the jukebox wall"],
+    moments: ["band loading in", "bartender shaking a tin", "friends splitting a pizza", "karaoke singer stepping up", "darts game in progress", "server running wings to a booth"],
+    textures: ["neon glow on wet bar top", "condensation on a pint glass", "chalk dust on the pool cue", "guitar pick on the stage floor", "grease sheen on a pizza box"],
+  },
+  wb: {
+    dishes: ["bone-in ribeye", "pan-seared sea bass", "lobster tail", "wedge salad", "crème brûlée", "shrimp cocktail", "filet mignon", "chocolate lava cake"],
+    drinks: ["Cabernet Sauvignon pour", "tableside martini", "single malt scotch neat", "champagne flute", "craft old fashioned", "wine flight"],
+    spaces: ["the dining room", "the wine display", "white tablecloths", "the host stand", "candlelit two-top", "the private dining room"],
+    moments: ["sommelier presenting a bottle", "steak arriving at the table", "a couple toasting", "the crème brûlée torch", "waiter folding a napkin", "cork being pulled"],
+    textures: ["butter melting on a steak", "wine legs on crystal", "linen napkin fold", "candlelight on silverware", "cracked pepper falling"],
+  },
+  nd: {
+    dishes: ["turkey club", "Italian sub", "grilled chicken wrap", "garden salad", "chips and pickle", "soup of the day"],
+    drinks: ["fountain soda", "iced tea", "bottled water", "fresh coffee"],
+    spaces: ["the counter", "grab-and-go display", "the menu board", "a high-top by the window"],
+    moments: ["sandwich being wrapped", "ticket printing", "tray sliding across the counter", "guest grabbing napkins"],
+    textures: ["crispy lettuce crunch", "deli paper crinkling", "steam from fresh soup", "ice hitting a cup"],
+  },
+  pad: {
+    dishes: ["buffet spread", "late-night snacks", "casino floor cocktail"],
+    drinks: ["complimentary drinks on the floor", "champagne for a jackpot winner", "coffee at the poker table"],
+    spaces: ["the casino floor", "slot machine rows", "the poker room", "the hotel lobby", "the exterior at night", "the parking lot entrance", "the riverboat silhouette", "the marquee sign"],
+    moments: ["dice bouncing on felt", "chips stacking", "slot machine hitting", "a guest checking in", "the valet opening a door", "the marquee lighting up at dusk"],
+    textures: ["green felt under overhead light", "chip edges catching light", "carpet pattern repeating", "elevator doors reflecting lobby light", "rain on the entrance canopy"],
+  },
+};
+
+function getVenueDetail(outletId, type) {
+  const v = venueDetails[outletId];
+  if (!v || !v[type]) return "";
+  return pick(v[type]);
 }
 
 function getStylesForOutlet(outletId) {
@@ -1561,73 +1633,84 @@ function generateStoryboard(outletId, temp, tierId) {
     const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp);
     if (support) allPicked.push(support);
 
-    // Smart shot descriptions based on beat role + subject + outlet
+    // Venue-aware shot descriptions
+    const dish = getVenueDetail(outletId, "dishes");
+    const drink = getVenueDetail(outletId, "drinks");
+    const space = getVenueDetail(outletId, "spaces");
+    const moment = getVenueDetail(outletId, "moments");
+    const tex = getVenueDetail(outletId, "textures");
+    const item = Math.random() > 0.5 ? dish : drink;
+
     let action = "";
+    let intent = ""; // why this shot exists
     if (beatKey === "hook") {
       const hookActions = [
-        `Extreme close-up: ${subject} texture fills the frame`,
-        `Quick burst: sizzle / pour / crack — pure sensory impact`,
-        `Bold movement into ${subject} — the first thing they see`,
-        `Dramatic reveal: darkness to light on ${subject}`,
+        [`Extreme close-up: ${tex}`, "Sensory-first — grabs attention before they can scroll"],
+        [`${moment} — cut fast, feel first`, "Movement catches the eye in the first half-second"],
+        [`Darkness. Then light hits ${item}`, "Contrast creates curiosity"],
+        [`Quick burst: ${tex}, then smash to black`, "Rhythm disruption — forces a rewatch"],
       ];
-      action = pick(hookActions);
+      const h = pick(hookActions); action = h[0]; intent = h[1];
     } else if (beatKey === "reveal") {
       const revealActions = [
-        `Pull back to show the full setting around ${subject}`,
-        `Dolly through the entrance into the space`,
-        `Transition from detail to wide — the venue emerges`,
-        `Camera rises to reveal the room, ${subject} in foreground`,
+        [`Pull back from ${item} to reveal ${space}`, "Context grounds the viewer — now they know where they are"],
+        [`Dolly through the entrance into ${space}`, "Spatial invitation — the viewer is walking in"],
+        [`Camera rises from tabletop detail to the full room`, "Scale shift creates a sense of discovery"],
+        [`${space} emerges through clearing steam / smoke`, "Mystery resolves into place — earned reveal"],
       ];
-      action = pick(revealActions);
+      const r = pick(revealActions); action = r[0]; intent = r[1];
     } else if (beatKey === "hero") {
       const heroActions = [
-        `Beauty shot: ${subject} in its full glory, perfectly lit`,
-        `${subject} presented — this is the money shot`,
-        `Slow, intentional framing of ${subject} at its best`,
-        `The plate / glass / moment arrives — ${subject} hero angle`,
+        [`${subject}: hero angle, ${space}. This is the money shot`, "The image they'll remember — needs to be perfect"],
+        [`${item} arrives. Slow, intentional, perfectly lit`, "Desire. This is what you came for"],
+        [`${subject} at its best — plated, poured, or presented`, "Aspirational framing — makes the viewer want to be here"],
+        [`The moment of service: ${item} meets the table`, "Human + product = emotional connection"],
       ];
-      action = pick(heroActions);
+      const h = pick(heroActions); action = h[0]; intent = h[1];
     } else if (beatKey === "detail") {
       const detailActions = [
-        `Tight on a sensory detail: steam, condensation, texture of ${subject}`,
-        `Hands interact with ${subject} — pour, cut, garnish, touch`,
-        `Macro moment: the detail that makes ${subject} real`,
-        `Supporting close-up that adds depth to the hero`,
+        [`Macro: ${tex}`, "Texture sells authenticity — this is real, not stock"],
+        [`Hands on ${item} — the craft moment`, "Human touch = quality signal"],
+        [`Tight on ${tex}. Hold it`, "Let the image breathe. Not every shot needs movement"],
+        [`The detail nobody notices until you show them: ${tex}`, "Discovery shot — makes the viewer feel like an insider"],
       ];
-      action = pick(detailActions);
+      const d = pick(detailActions); action = d[0]; intent = d[1];
     } else if (beatKey === "energy") {
       const energyActions = [
-        `People: laughter, clinking glasses, the crowd alive`,
-        `Motion: the bartender shakes, the server walks, the band plays`,
-        `Candid moment — real guests enjoying the space`,
-        `The energy of the room in one shot — movement, light, sound`,
+        [`${moment}. Candid, not posed`, "Real energy sells better than staged energy"],
+        [`The room in motion — ${moment}`, "Life proof. People are here and loving it"],
+        [`Laughter, clinking, ${moment}`, "Sound-first shot — audio drives the edit here"],
+        [`${moment} — catch it, don't direct it`, "Documentary instinct. Best moments are found, not made"],
       ];
-      action = pick(energyActions);
+      const e = pick(energyActions); action = e[0]; intent = e[1];
     } else if (beatKey === "space") {
       const spaceActions = [
-        `Wide shot: the full venue / room / architecture breathes`,
-        `Atmospheric sweep of the space — lighting, design, mood`,
-        `The environment as character — this is where it happens`,
-        `Slow pan across the room, taking in the atmosphere`,
+        [`Wide: ${space}. Let the architecture do the work`, "Establishes scale and atmosphere"],
+        [`Slow sweep across ${space}`, "The venue is a character — give it a proper entrance"],
+        [`${space} — empty or full, this room tells a story`, "Environmental storytelling without words"],
+        [`The light in ${space}. That's the shot`, "Mood > information in this beat"],
       ];
-      action = pick(spaceActions);
+      const s = pick(spaceActions); action = s[0]; intent = s[1];
     } else if (beatKey === "closer") {
       const closerActions = [
-        `Logo reveal with ${subject} in background`,
-        `Final frame: brand mark + CTA text overlay`,
-        `Closing shot: the venue glowing + logo lands`,
-        `End card: logo + "${cta}"`,
+        [`Logo lands over ${space}. "${cta}"`, "Brand recall — the last frame is the one they remember"],
+        [`Final frame: ${space} glowing + logo fade-in`, "End on atmosphere, not a hard sell"],
+        [`${moment} freezes. Logo. Done`, "Energy to stillness = punctuation"],
+        [`End card: logo + "${cta}" over ${tex}`, "Texture background keeps it warm, not corporate"],
       ];
-      action = pick(closerActions);
+      const c = pick(closerActions); action = c[0]; intent = c[1];
     }
+
+    const shotStyles = [camera, support].filter(Boolean);
 
     return {
       num: i + 1,
       beat: beat.role,
       duration: durations[i],
       action,
-      styles: [camera, support].filter(Boolean),
-      gear: getGearForBeat(beatKey),
+      intent,
+      styles: shotStyles,
+      gear: getGearForShot(beatKey, shotStyles),
     };
   });
 
@@ -2082,6 +2165,7 @@ export default function App() {
             storyboard.shots.forEach(sh => {
               text += `SHOT ${sh.num} — ${sh.beat} (${sh.duration}s)\n`;
               text += `  ${sh.action}\n`;
+              if (sh.intent) text += `  Why: ${sh.intent}\n`;
               text += `  Styles: ${sh.styles.map(s => `#${s[0]} ${s[1]}`).join(", ")}\n`;
               if (sh.gear?.length) text += `  Gear: ${sh.gear.map(g => g.name).join(", ")}\n`;
               text += `\n`;
@@ -2128,7 +2212,8 @@ export default function App() {
                 </div>
                 <span style={{ fontSize: 11, color: "#555", fontFamily: "monospace" }}>{sh.duration}s</span>
               </div>
-              <div style={{ fontSize: 13, color: "#CCC", lineHeight: 1.5, marginBottom: 8 }}>{sh.action}</div>
+              <div style={{ fontSize: 13, color: "#CCC", lineHeight: 1.5, marginBottom: 4 }}>{sh.action}</div>
+              {sh.intent && <div style={{ fontSize: 11, color: "#555", fontStyle: "italic", marginBottom: 8, lineHeight: 1.4 }}>↳ {sh.intent}</div>}
               <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                 {sh.styles.map(s => (
                   <span key={s[0]} style={{ fontSize: 10, color: "#777", background: "#0D0D0D", border: "1px solid #1A1A1A", borderRadius: 4, padding: "2px 6px" }}>
