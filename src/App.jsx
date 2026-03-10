@@ -4,6 +4,7 @@ const outlets = [
   { id: "tl", name: "Tin Lizard", sub: "Bar & Grill", icon: "🦎" },
   { id: "wb", name: "William B's", sub: "Steakhouse", icon: "🥩" },
   { id: "nd", name: "Nelson's Deli", sub: "Quick Service", icon: "🥪" },
+  { id: "bb", name: "Bourbon's", sub: "Hotel Lounge", icon: "🥃" },
   { id: "pad", name: "Par-A-Dice", sub: "Casino & Hotel", icon: "🎰" },
 ];
 
@@ -33,27 +34,32 @@ const categories = [
   { id: 23, name: "Multi-Camera & Coverage", range: [1111, 1135] },
   { id: 24, name: "Interactive & Social-Native", range: [1136, 1165] },
   { id: 25, name: "BTS & Process Content", range: [1166, 1200] },
+  { id: 26, name: "Riverboat & Waterfront", range: [1201, 1230] },
+  { id: 27, name: "Gaming Floor & Casino Culture", range: [1231, 1270] },
+  { id: 28, name: "Hotel & Guest Experience", range: [1271, 1305] },
+  { id: 29, name: "Boyd Rewards & Promotions", range: [1306, 1335] },
+  { id: 30, name: "Local & Seasonal Illinois River Valley", range: [1336, 1370] },
 ];
 
-// Compact data: [id, name, outlets_string] where outlets_string uses t=TL w=WB n=ND p=PAD
+// Compact data: [id, name, outlets_string] where outlets_string uses t=TL w=WB n=ND b=BB p=PAD
 const S = [
 [1,"White chalk street lettering on dark pavement","tn"],
 [2,"Neon tube script traced over footage","tp"],
-[3,"Cursive ink bleed reveal","w"],
+[3,"Cursive ink bleed reveal","wb"],
 [4,"Condensation finger-writing on cold glass","t"],
 [5,"Salt pour lettering on dark bar top","t"],
-[6,"Gold leaf press-on lettering","wp"],
+[6,"Gold leaf press-on lettering","wpb"],
 [7,"Typewriter key strike animation","wp"],
 [8,"Flour dust lettering on cutting board","tn"],
 [9,"Smoke lettering dissipating into air","twp"],
 [10,"Grease pencil scrawl on butcher paper","tn"],
-[11,"Frost crystal forming into words on glass","w"],
+[11,"Frost crystal forming into words on glass","wb"],
 [12,"Matchstick burn lettering into wood","tw"],
 [13,"Ketchup squeeze-bottle script on white plate","tn"],
 [14,"Branded iron burn into wood plank","twp"],
 [15,"Stencil spray paint on concrete","t"],
 [16,"Cocktail napkin ballpoint pen handwriting","t"],
-[17,"Embossed leather stamp lettering","wp"],
+[17,"Embossed leather stamp lettering","wpb"],
 [18,"Playing card suit symbols replacing letters","tp"],
 [19,"Marquee lightbulb letter reveal","tp"],
 [20,"Liquid pour lettering","tw"],
@@ -187,16 +193,16 @@ const S = [
 [148,"Edge-of-frame tension","tw"],
 [149,"Foreground bokeh frame","twp"],
 [150,"Layered depth rack 3 planes","wp"],
-[151,"Single candle illumination","w"],
-[152,"Neon wash colored neon fills scene","tp"],
-[153,"Rim light silhouette","twp"],
+[151,"Single candle illumination","wb"],
+[152,"Neon wash colored neon fills scene","tpb"],
+[153,"Rim light silhouette","twpb"],
 [154,"Chiaroscuro high contrast","wp"],
 [155,"Blacklight UV glow","tp"],
 [156,"Spotlight isolation","twp"],
-[157,"Backlit steam/smoke","tw"],
+[157,"Backlit steam/smoke","twb"],
 [158,"Golden hour window light","wnp"],
 [159,"Practical lights only venue fixtures","twnp"],
-[160,"Edison bulb warm glow","tw"],
+[160,"Edison bulb warm glow","twb"],
 [161,"Overhead pendant pool","twn"],
 [162,"Under-lit dramatic uplighting","twp"],
 [163,"Cross lighting two opposing sources","tw"],
@@ -474,10 +480,10 @@ const S = [
 [435,"Empty-to-full transformation","twp"],
 [436,"Before/after raw to cooked","twn"],
 [437,"Day-in-the-life of a chef","tw"],
-[438,"Day-in-the-life of a bartender","tw"],
+[438,"Day-in-the-life of a bartender","twb"],
 [439,"Day-in-the-life of a server","twn"],
 [440,"One dish three ways","tw"],
-[441,"Regular's order","twn"],
+[441,"Regular's order","twnb"],
 [442,"From scratch narrative","tw"],
 [443,"The last bite","twn"],
 [444,"The first sip","tw"],
@@ -491,7 +497,7 @@ const S = [
 [452,"The build-up showing every component","twn"],
 [453,"Deconstructed dish explanation","w"],
 [454,"One-take service kitchen to table","twn"],
-[455,"Nostalgia callback vintage to modern","p"],
+[455,"Nostalgia callback vintage to modern","pb"],
 [456,"Guest testimonial candid reactions","twnp"],
 [457,"What $X gets you price tier","twn"],
 [458,"How it's made process documentary","twn"],
@@ -537,21 +543,21 @@ const S = [
 [498,"The one that got away LTO return","tw"],
 [499,"Full-circle narrative","twp"],
 [500,"Silent film storytelling","wp"],
-[501,"Neon noir crushed blacks neon accents","tp"],
+[501,"Neon noir crushed blacks neon accents","tpb"],
 [502,"Warm golden amber","tw"],
 [503,"High-key bright and airy","n"],
 [504,"Desaturated matte editorial","wp"],
 [505,"Teal and orange blockbuster","tp"],
-[506,"Monochromatic single-hue wash","wp"],
+[506,"Monochromatic single-hue wash","wpb"],
 [507,"Sepia vintage tone","p"],
 [508,"Cross-processed film unexpected shifts","t"],
 [509,"Bleach bypass reduced sat high contrast","twp"],
-[510,"Day-for-night grade","p"],
+[510,"Day-for-night grade","pb"],
 [511,"Kodak Portra emulation","tw"],
 [512,"Fuji Velvia emulation punchy saturation","tp"],
 [513,"Cinestill 800T tungsten halation","tp"],
 [514,"Technicolor two-strip",""],
-[515,"Black and white high contrast","twp"],
+[515,"Black and white high contrast","twpb"],
 [516,"Black and white soft low contrast","wp"],
 [517,"Split tone warm highlights cool shadows","twp"],
 [518,"Split tone cool highlights warm shadows","wp"],
@@ -611,15 +617,15 @@ const S = [
 [572,"Genre-matched scoring","twnp"],
 [573,"Sound effect exaggeration cartoon","tn"],
 [574,"Audio ducking for text emphasis","twnp"],
-[575,"Reverse audio swell","twp"],
+[575,"Reverse audio swell","twpb"],
 [576,"Multi-layered sound design","twp"],
-[577,"Call-and-response audio edit","t"],
+[577,"Call-and-response audio edit","tb"],
 [578,"Tempo-matched camera movement","twp"],
 [579,"Frequency-reactive graphics","tp"],
 [580,"Audio-reactive color shift","tp"],
 [581,"Binaural audio panning","twp"],
 [582,"Voiceover narration overlay","twnp"],
-[583,"Whispered narration ASMR","w"],
+[583,"Whispered narration ASMR","wb"],
 [584,"Found sound composition venue sounds only","twnp"],
 [585,"Breathing rhythm edit","w"],
 [586,"Typewriter sound with text","wp"],
@@ -1244,9 +1250,184 @@ const S = [
 [1198,"Content calendar planning session BTS","p"],
 [1199,"Editing workflow screen capture sped up","twnp"],
 [1200,"Wrap day celebration and team shot","twnp"],
+// === RIVERBOAT & WATERFRONT (1201-1230) ===
+[1201,"Dockside riverboat exterior golden hour wide","p"],
+[1202,"Illinois River reflection of casino lights at night","p"],
+[1203,"Riverboat hull and waterline close-up texture","p"],
+[1204,"Walk-the-gangway entrance transition shot","p"],
+[1205,"Four-deck vertical tilt from waterline to top","p"],
+[1206,"River fog rolling past docked riverboat at dawn","p"],
+[1207,"Shuttle van approach from hotel to casino entrance","p"],
+[1208,"Peoria skyline seen across river from property","p"],
+[1209,"Sunset behind riverboat silhouette time-lapse","p"],
+[1210,"Drone orbit around docked riverboat","p"],
+[1211,"Casino entrance neon reflecting on wet dock planks","p"],
+[1212,"Illinois River current flowing past hull slow-mo","p"],
+[1213,"Guest stepping off gangway onto casino floor","p"],
+[1214,"Riverboat lit up at night wide establishing shot","p"],
+[1215,"Morning mist on river with property in background","p"],
+[1216,"21 Blackjack Blvd street sign with property behind","p"],
+[1217,"Aerial reveal ascending from river to full property","p"],
+[1218,"Autumn foliage framing riverboat from shore","p"],
+[1219,"Winter snow on dock with warm casino glow inside","p"],
+[1220,"Spring blooms along walkway to casino entrance","p"],
+[1221,"Rain on entrance canopy with guests arriving","p"],
+[1222,"Riverboat deck railing detail with river behind","p"],
+[1223,"Night exterior marquee sign illumination","p"],
+[1224,"Valet area car arrival with property backdrop","p"],
+[1225,"Parking lot filling up time-lapse evening rush","p"],
+[1226,"Drone fly-through from river over boat to hotel","p"],
+[1227,"Historic paddle-wheeler reference vintage overlay","p"],
+[1228,"East Peoria riverfront park adjacent establishing","p"],
+[1229,"Route 116 approach drive to property POV","p"],
+[1230,"Boat and hotel together wide shot showing scale","p"],
+// === GAMING FLOOR & CASINO CULTURE (1231-1270) ===
+[1231,"Slot machine screen cascade rainbow light burst","p"],
+[1232,"Chip stack close-up on green felt under warm light","p"],
+[1233,"Roulette wheel spin slow-motion ball bounce","p"],
+[1234,"Blackjack card flip dealer hands-only close-up","p"],
+[1235,"Jackpot celebration moment confetti and lights","p"],
+[1236,"High-limit area moody atmospheric wide shot","p"],
+[1237,"FanDuel Sportsbook wall of screens game day","p"],
+[1238,"Betting kiosk touch-screen interaction close-up","p"],
+[1239,"Green felt texture macro with chip edge detail","p"],
+[1240,"Casino floor ambient sound-reactive light painting","p"],
+[1241,"First-person POV walk through slot machine rows","p"],
+[1242,"Overhead bird's-eye of table game layout","p"],
+[1243,"Dice bounce on craps table slow-motion","p"],
+[1244,"Card shuffle ASMR hands-only sequence","p"],
+[1245,"Slot machine lever pull to spin sequence","p"],
+[1246,"Casino floor from entrance wide establishing","p"],
+[1247,"Three-card poker hand reveal close-up","p"],
+[1248,"Mississippi stud progressive bet moment","p"],
+[1249,"Baccarat card squeeze close-up tension","p"],
+[1250,"Winner reaction genuine guest celebration","p"],
+[1251,"Cocktail server navigating gaming floor tracking","p"],
+[1252,"Slot machine button panel macro neon detail","p"],
+[1253,"Casino carpet pattern repeating dolly shot","p"],
+[1254,"Overhead slot bank geometry rows of light","p"],
+[1255,"Dealer chip trick flourish hands-only","p"],
+[1256,"Gaming floor transition dusk-to-night energy shift","p"],
+[1257,"Sportsbook big screen touchdown moment crowd react","p"],
+[1258,"Cash-out ticket printing close-up satisfaction","p"],
+[1259,"New slot machine game launch featured hero shot","p"],
+[1260,"Casino floor at capacity Friday night wide energy","p"],
+[1261,"Morning opening empty floor calm before storm","p"],
+[1262,"Security camera aesthetic overhead surveillance","p"],
+[1263,"Coin and token texture close-up nostalgic detail","p"],
+[1264,"Progressive jackpot counter ticking up close-up","p"],
+[1265,"VIP host greeting guest at table personalized","p"],
+[1266,"Gaming floor reflected in polished surface","p"],
+[1267,"Card table minimum bet sign detail shot","p"],
+[1268,"Slot machine bonus round animation screen capture","p"],
+[1269,"Casino floor ambient glow through doorway reveal","p"],
+[1270,"26000 square feet of floor overhead drone sweep","p"],
+// === HOTEL & GUEST EXPERIENCE (1271-1305) ===
+[1271,"Art deco lobby interior wide establishing shot","bp"],
+[1272,"Room door opening reveal transition","bp"],
+[1273,"River view from hotel window time-lapse dawn","bp"],
+[1274,"Hotel lobby chandelier look-up detail","bp"],
+[1275,"Elevator door reflection lobby light","bp"],
+[1276,"Check-in counter interaction warm welcome","bp"],
+[1277,"Hallway perspective dolly vanishing point","bp"],
+[1278,"Morning coffee with Peoria skyline view","bp"],
+[1279,"Hotel-to-casino shuttle ride transition","p"],
+[1280,"Turndown service detail chocolate on pillow","bp"],
+[1281,"Suite panoramic slow reveal window-to-room","bp"],
+[1282,"Art deco wallpaper pattern macro texture","bp"],
+[1283,"King bed crisp white linens texture close-up","bp"],
+[1284,"Mini-fridge open glow late night snack moment","bp"],
+[1285,"Hotel room safe detail security and luxury","bp"],
+[1286,"202 rooms exterior windows grid at night","p"],
+[1287,"Bathroom vanity mirror reflection portrait","bp"],
+[1288,"Room service tray arriving at door","bp"],
+[1289,"Ice machine hallway ambient late-night moment","bp"],
+[1290,"Hotel robe detail hanging on door hook","bp"],
+[1291,"Gym fitness center morning workout establishing","bp"],
+[1292,"Conference room meeting setup business amenity","bp"],
+[1293,"Ballroom event space empty to full transition","bp"],
+[1294,"Gift shop display curated detail shot","p"],
+[1295,"Guest walking corridor silhouette backlit","bp"],
+[1296,"Hotel exterior at dusk warm windows glowing","bp"],
+[1297,"Luggage cart in lobby travel arrival moment","bp"],
+[1298,"Wedding venue setup ballroom romantic detail","bp"],
+[1299,"Hotel bar Bourbon's entrance warm glow reveal","bp"],
+[1300,"Express checkout departure smooth experience","bp"],
+[1301,"Complimentary WiFi laptop workspace detail","bp"],
+[1302,"Hotel pool area if visible relaxation moment","bp"],
+[1303,"Art deco mirror ornamental detail macro","bp"],
+[1304,"24-hour front desk night shift warm service","bp"],
+[1305,"Guest room window with river barge passing","bp"],
+// === BOYD REWARDS & PROMOTIONS (1306-1335) ===
+[1306,"Boyd Rewards card scan and screen glow","p"],
+[1307,"Tier upgrade celebration Ruby to Sapphire","p"],
+[1308,"Rewards kiosk interaction touch-and-check","p"],
+[1309,"Comp redemption satisfaction at register","p"],
+[1310,"Member-exclusive entry VIP treatment","p"],
+[1311,"Points counter incrementing animation overlay","p"],
+[1312,"Ruby tier card close-up entry level warmth","p"],
+[1313,"Sapphire tier card blue prestige detail","p"],
+[1314,"Emerald tier card green exclusivity shot","p"],
+[1315,"Onyx tier card dark luxury macro","p"],
+[1316,"Titanium tier card peak reward hero shot","p"],
+[1317,"Promotional offer text treatment animated","p"],
+[1318,"Giveaway countdown energy crowd anticipation","p"],
+[1319,"VIP host personal attention special moment","p"],
+[1320,"Dining voucher comp handover satisfaction","twbp"],
+[1321,"Priority reservation confirmation WB detail","wp"],
+[1322,"Best buffet seating VIP treatment","p"],
+[1323,"Nightly turndown service tier benefit shown","bp"],
+[1324,"Early access giveaway excitement morning","p"],
+[1325,"Cruise reward dream destination montage","p"],
+[1326,"Boyd Rewards app screen UI close-up","p"],
+[1327,"Loyalty card in wallet real guest moment","p"],
+[1328,"Points-to-play conversion slot activation","p"],
+[1329,"New member signup process at desk","p"],
+[1330,"Multi-property Boyd network destination map","p"],
+[1331,"Anniversary reward special recognition","p"],
+[1332,"Birthday celebration comp surprise moment","twbp"],
+[1333,"Referral bonus friend-brings-friend energy","p"],
+[1334,"Rewards tier comparison side-by-side graphic","p"],
+[1335,"All Right Here tagline integration moment","p"],
+// === LOCAL & SEASONAL ILLINOIS RIVER VALLEY (1336-1370) ===
+[1336,"Peoria skyline from East Peoria at dusk","p"],
+[1337,"Illinois River fog dawn atmospheric slow","p"],
+[1338,"Autumn foliage along riverfront drive","p"],
+[1339,"Winter snow on property exterior warm contrast","p"],
+[1340,"Spring blooms along Blackjack Blvd approach","p"],
+[1341,"Summer patio energy outdoor dining golden hour","twbp"],
+[1342,"Central Illinois prairie golden hour light","p"],
+[1343,"Mayfly season atmospheric night exterior","p"],
+[1344,"Peoria civic center skyline night establishing","p"],
+[1345,"Greater Peoria Airport arrival to property journey","p"],
+[1346,"Route 116 drive approaching East Peoria","p"],
+[1347,"Illinois River barge passing property backdrop","p"],
+[1348,"Fondulac park adjacent nature greenery","p"],
+[1349,"Local craft beer tap handle detail Central IL","tp"],
+[1350,"Friday night East Peoria nightlife energy","twbp"],
+[1351,"Sunday brunch peaceful morning river light","twbp"],
+[1352,"Harvest season autumn Central Illinois warmth","twp"],
+[1353,"Holiday decorations on property festive exterior","p"],
+[1354,"New Year's Eve celebration property countdown","twbp"],
+[1355,"Valentine's date night couple arriving","wbp"],
+[1356,"St. Patrick's Day green themed event night","tp"],
+[1357,"Mother's Day brunch special service moment","twbp"],
+[1358,"Fourth of July riverfront fireworks property","p"],
+[1359,"Halloween costume casino night themed event","tp"],
+[1360,"Thanksgiving dinner family gathering WB","wp"],
+[1361,"Christmas lights on property exterior festive","p"],
+[1362,"March Madness sportsbook energy packed house","p"],
+[1363,"NFL Sunday FanDuel screens crowd reaction","p"],
+[1364,"Local band performing Tin Lizard weekend","t"],
+[1365,"Karaoke Thursday night energy crowd singing","t"],
+[1366,"East Peoria community event at property","p"],
+[1367,"Bradley University game day spillover energy","tp"],
+[1368,"Illinois Central College nearby establishing","p"],
+[1369,"Central Illinois hospitality genuine warmth","twbnp"],
+[1370,"All Right Here brand moment property pride","twbnp"],
 ];
 
-const outletKey = { t: "tl", w: "wb", n: "nd", p: "pad" };
+const outletKey = { t: "tl", w: "wb", n: "nd", b: "bb", p: "pad" };
 
 // === EQUIPMENT REGISTRY ===
 const equipment = [
@@ -1406,9 +1587,16 @@ const venueDetails = {
   pad: {
     dishes: ["buffet spread", "late-night snacks", "casino floor cocktail"],
     drinks: ["complimentary drinks on the floor", "champagne for a jackpot winner", "coffee at the poker table"],
-    spaces: ["the casino floor", "slot machine rows", "the poker room", "the hotel lobby", "the exterior at night", "the parking lot entrance", "the riverboat silhouette", "the marquee sign"],
-    moments: ["dice bouncing on felt", "chips stacking", "slot machine hitting", "a guest checking in", "the valet opening a door", "the marquee lighting up at dusk"],
-    textures: ["green felt under overhead light", "chip edges catching light", "carpet pattern repeating", "elevator doors reflecting lobby light", "rain on the entrance canopy"],
+    spaces: ["the casino floor", "slot machine rows", "the FanDuel Sportsbook", "the hotel lobby", "the riverboat exterior at night", "the parking lot entrance", "the riverboat silhouette on the river", "the marquee sign", "the high-limit area", "the four-deck riverboat", "the gangway entrance", "21 Blackjack Blvd"],
+    moments: ["dice bouncing on felt", "chips stacking", "slot machine hitting jackpot", "a guest checking in", "the valet opening a door", "the marquee lighting up at dusk", "shuttle arriving from hotel", "Boyd Rewards card scanning", "touchdown on the sportsbook screens", "progressive jackpot ticking up"],
+    textures: ["green felt under overhead light", "chip edges catching light", "carpet pattern repeating", "elevator doors reflecting lobby light", "rain on the entrance canopy", "river reflection of casino neon", "slot machine button panel glow", "riverboat hull at waterline"],
+  },
+  bb: {
+    dishes: ["charcuterie board", "bar snacks", "late-night small plates", "dessert from William B's"],
+    drinks: ["single malt scotch neat", "craft old fashioned", "Cabernet pour", "specialty cocktail of the week", "local craft beer", "champagne flute", "espresso martini", "wine by the glass"],
+    spaces: ["the lounge bar", "leather seating area", "the cocktail rail", "the back corner booth", "the art deco mirror wall", "window seat with river view"],
+    moments: ["bartender crafting a cocktail", "ice sphere cracking in glass", "a quiet toast between two", "checking the phone after a win", "unwinding after the casino floor", "nightcap before heading to the room"],
+    textures: ["amber liquid catching bar light", "leather seat creak", "cocktail napkin fold", "condensation on a rocks glass", "warm wood grain on the bar top", "soft lounge music in the background"],
   },
 };
 
@@ -1419,12 +1607,12 @@ function getVenueDetail(outletId, type) {
 }
 
 function getStylesForOutlet(outletId) {
-  const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
+  const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[outletId];
   return S.filter(s => s[2].includes(key));
 }
 
 function getStylesForOutletAndCategory(outletId, cat) {
-  const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
+  const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[outletId];
   return S.filter(s => s[2].includes(key) && s[0] >= cat.range[0] && s[0] <= cat.range[1]);
 }
 
@@ -1462,6 +1650,11 @@ const catProfiles = {
   23: [0.5, 0.5, 0.5, 0.5, 0.3], // Multi-cam — neutral, coverage
   24: [0.7, 0.7, 0.6, 0.2, 0.8], // Interactive/Social — fast, playful
   25: [0.5, 0.5, 0.6, 0.3, 0.6], // BTS/Process — authentic, relatable
+  26: [0.3, 0.4, 0.5, 0.7, 0.2], // Riverboat/Waterfront — cinematic, grand, slow
+  27: [0.6, 0.7, 0.4, 0.5, 0.5], // Gaming Floor — energetic, exciting, balanced
+  28: [0.3, 0.3, 0.8, 0.7, 0.2], // Hotel/Guest — warm, refined, intimate
+  29: [0.5, 0.5, 0.5, 0.5, 0.5], // Boyd Rewards — neutral, versatile
+  30: [0.4, 0.4, 0.6, 0.5, 0.3], // Local/Seasonal — grounded, warm, authentic
 };
 
 // Per-style energy nudges based on outlet mapping
@@ -1477,6 +1670,7 @@ function getStyleProfile(style) {
   if (o.includes("t") && !o.includes("w")) { base[1] += 0.1; base[4] += 0.1; } // TL-exclusive: more energetic, playful
   if (o.includes("n")) { base[0] += 0.1; } // ND: faster
   if (o.includes("p") && o.length === 1) { base[3] += 0.1; base[1] += 0.1; } // PAD-exclusive: bold + sophisticated
+  if (o.includes("b")) { base[2] += 0.1; base[3] += 0.1; base[0] -= 0.05; } // BB: warmer, more sophisticated, slightly slower
   // Clamp 0-1
   return base.map(v => Math.max(0, Math.min(1, v)));
 }
@@ -1486,6 +1680,7 @@ const brandTargets = {
   tl:  [0.65, 0.75, 0.7, 0.25, 0.8],  // fast, loud, warm, casual, fun
   wb:  [0.2, 0.25, 0.75, 0.9, 0.15],   // slow, quiet, warm, refined, serious
   nd:  [0.85, 0.6, 0.5, 0.1, 0.6],     // very fast, moderate energy, neutral, casual
+  bb:  [0.3, 0.35, 0.8, 0.75, 0.25],   // slow, calm, very warm, sophisticated, relaxed
   pad: [0.5, 0.7, 0.5, 0.7, 0.4],      // moderate pace, high energy, balanced, prestigious
 };
 
@@ -1563,7 +1758,7 @@ const recipeSlots = [
 ];
 
 function generateRecipe(outletId, temperature) {
-  const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
+  const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[outletId];
   const brandTarget = brandTargets[outletId];
   const recipe = [];
   const selectedProfiles = [];
@@ -1859,13 +2054,13 @@ function fuzzyMatch(query, text) {
 // Shot beats define the narrative arc of an ad
 // Each beat type has: role, typical duration range, which style categories to pull from
 const shotBeats = {
-  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12, 22], catSec: [3, 4, 24],     desc: "Thumb-stopper. Extreme detail, dramatic action." },
-  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3, 19], catSec: [4, 5, 20],  desc: "Pull back, show context. Transition into the space." },
-  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3], catSec: [4, 10, 23],    desc: "The money shot. What you're selling." },
-  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12, 22], catSec: [6, 3, 21], desc: "Supporting texture. Sensory close-up." },
-  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5, 23, 24], catSec: [11, 3, 25], desc: "Movement, people, life. The vibe." },
-  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4, 19, 20], catSec: [10, 3, 21], desc: "Architecture, ambiance, the room itself." },
-  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1], catSec: [10, 2, 25],    desc: "Logo reveal + CTA. End on brand." },
+  hook:    { role: "HOOK",    durRange: [1, 2],  catPri: [7, 12, 22, 27], catSec: [3, 4, 24],       desc: "Thumb-stopper. Extreme detail, dramatic action." },
+  reveal:  { role: "REVEAL",  durRange: [2, 3],  catPri: [2, 3, 19, 26], catSec: [4, 5, 20, 30],   desc: "Pull back, show context. Transition into the space." },
+  hero:    { role: "HERO",    durRange: [3, 5],  catPri: [12, 3, 27], catSec: [4, 10, 23],          desc: "The money shot. What you're selling." },
+  detail:  { role: "DETAIL",  durRange: [2, 3],  catPri: [7, 12, 22, 29], catSec: [6, 3, 21, 28],  desc: "Supporting texture. Sensory close-up." },
+  energy:  { role: "ENERGY",  durRange: [2, 3],  catPri: [14, 5, 23, 24, 27], catSec: [11, 3, 25], desc: "Movement, people, life. The vibe." },
+  space:   { role: "SPACE",   durRange: [2, 4],  catPri: [13, 4, 19, 20, 26, 28], catSec: [10, 3, 21, 30], desc: "Architecture, ambiance, the room itself." },
+  closer:  { role: "CLOSER",  durRange: [2, 3],  catPri: [18, 1, 29], catSec: [10, 2, 25],          desc: "Logo reveal + CTA. End on brand." },
 };
 
 // Outlet-specific ad structures — beats scale with duration tier
@@ -1947,6 +2142,32 @@ const adStructures = {
     ],
     captionStyle: "short, punchy, functional, no fluff"
   },
+  bb: {
+    name: "Bourbon's",
+    paceMultiplier: 1.4,
+    beatsByTier: {
+      quick:    ["hook", "hero", "detail", "closer"],
+      short:    ["hook", "space", "hero", "detail", "closer"],
+      standard: ["hook", "space", "hero", "detail", "energy", "detail", "closer"],
+      long:     ["hook", "space", "hero", "detail", "energy", "space", "hero", "detail", "closer"],
+    },
+    subjects: ["craft cocktail", "scotch neat", "espresso martini", "wine pour", "charcuterie board", "nightcap", "post-game drink", "hotel lounge atmosphere"],
+    hooks: [
+      "The night's not over yet.",
+      "This is where winners unwind.",
+      "One more. You've earned it.",
+      "The best seat in the house.",
+      "Where the evening exhales.",
+    ],
+    ctas: [
+      "Bourbon's at Par-A-Dice Hotel",
+      "Open nightly",
+      "Your after-hours destination",
+      "21 Blackjack Blvd, East Peoria",
+      "Tag your drinking buddy",
+    ],
+    captionStyle: "warm, intimate, grown-up nightlife, understated luxury"
+  },
   pad: {
     name: "Par-A-Dice",
     paceMultiplier: 1.2,
@@ -1956,13 +2177,15 @@ const adStructures = {
       standard: ["hook", "space", "energy", "hero", "space", "detail", "energy", "closer"],
       long:     ["hook", "space", "energy", "hero", "space", "detail", "energy", "space", "hero", "energy", "closer"],
     },
-    subjects: ["casino floor", "slot machines", "poker table", "hotel room", "property exterior at night", "entertainment", "Boyd Rewards", "jackpot moment"],
+    subjects: ["casino floor", "slot machines", "blackjack table", "riverboat exterior", "hotel lobby", "FanDuel Sportsbook", "Boyd Rewards", "jackpot moment", "roulette wheel", "the four-deck riverboat"],
     hooks: [
       "East Peoria's best-kept secret.",
       "Your lucky night starts now.",
       "More than a casino.",
       "Where the Illinois River meets Lady Luck.",
       "The only place you need to be tonight.",
+      "Docked on the river. Loaded with luck.",
+      "All. Right. Here.",
     ],
     ctas: [
       "Join Boyd Rewards — link in bio",
@@ -1970,6 +2193,7 @@ const adStructures = {
       "Book your stay",
       "See what's playing this weekend",
       "Follow for more from the floor",
+      "550+ slots. 18 table games. Free admission.",
     ],
     captionStyle: "exciting, prestigious, inviting, property-wide"
   },
@@ -1987,7 +2211,7 @@ function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Pick a style from specific categories for a given outlet, respecting the smart engine
 function pickStyleForShot(outletId, catIds, existing, temperature, moodId, beatKey) {
-  const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
+  const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[outletId];
   const brandTarget = applyMood(brandTargets[outletId], moodId);
   const pool = [];
   for (const catId of catIds) {
@@ -2140,6 +2364,10 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
       `${hook} 🥪⚡\n\n${cta}\n\n#NelsonsDeli #ParADice #QuickBite #CasinoFood`,
       `Between hands. Between jackpots. Between amazing.\n\n${cta}\n\n#GrabAndGo #NelsonsDeli #ParADiceCasino`,
     ],
+    bb: [
+      `${hook} 🥃\n\nBourbon's at Par-A-Dice Hotel.\n\n${cta}\n\n#Bourbons #ParADice #HotelBar #CraftCocktails #NightOut #EastPeoria`,
+      `The after-hours destination. 🥃✨\n\n${cta}\n\n#BourbonsLounge #ParADiceHotel #Nightcap #CocktailHour #CentralIL`,
+    ],
     pad: [
       `${hook} 🎰✨\n\n${cta}\n\n#ParADice #EastPeoria #Casino #Hotel #Entertainment #BoydGaming #Illinois`,
       `Luck lives at 21 Blackjack Blvd. 🃏\n\n${cta}\n\n#ParADiceHotelCasino #Gaming #NightOut #BoydRewards #CentralIL`,
@@ -2267,7 +2495,7 @@ export default function App() {
           <Box onClick={() => setMode("browse")}>
             <span style={{ fontSize: 32 }}>📂</span>
             <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Browse</div>
-            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Explore 1,200 styles</div>
+            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Explore 1,370 styles</div>
           </Box>
           <Box onClick={() => setMode("shotlist")}>
             <span style={{ fontSize: 32 }}>📋</span>
@@ -2289,7 +2517,7 @@ export default function App() {
           <input
             value={searchQuery}
             onChange={e => { setSearchQuery(e.target.value); if (e.target.value.length > 0) setMode("search"); }}
-            placeholder="Search 1,200 styles..."
+            placeholder="Search 1,370 styles..."
             style={{ ...inputStyle, width: "100%", padding: "12px 16px", fontSize: 14, borderRadius: 10, background: "#111", border: "1px solid #222" }}
           />
         </div>
@@ -2454,7 +2682,7 @@ export default function App() {
       const totalScore = Math.max(score, catScore);
       // Filter by outlet if selected
       if (searchOutlet) {
-        const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[searchOutlet];
+        const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[searchOutlet];
         if (!s[2].includes(key)) return null;
       }
       return totalScore > 0 ? { style: s, score: totalScore } : null;
