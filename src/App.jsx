@@ -1581,16 +1581,13 @@ function generateStoryboard(outletId, temp, tierId) {
 export default function App() {
   const [mode, setMode] = useState(null);
   const [path, setPath] = useState([]);
-  const [genOutlet, setGenOutlet] = useState(null);
-  const [recipe, setRecipe] = useState(null);
-  const [locked, setLocked] = useState({});
+  const [genOutlet, setGenOutlet] = useState(null); // kept for saved recipes compatibility
   const [shotList, setShotList] = usePersistedState("pad-shotlist", []); // array of { style: [id,name,outlets], subject: "", why: "" }
   const [toast, setToast] = useState(null);
   const [temperature, setTemperature] = usePersistedState("pad-temp", 0.4); // 0-1
   const [savedRecipes, setSavedRecipes] = usePersistedState("pad-saved", []); // { name, outlet, recipe, coherence, timestamp }
   const [searchQuery, setSearchQuery] = useState("");
   const [searchOutlet, setSearchOutlet] = useState(null); // null = all outlets
-  const [savingName, setSavingName] = useState(null); // string when save dialog is open
   const [storyboard, setStoryboard] = useState(null);
   const [sbOutlet, setSbOutlet] = useState(null);
   const [sbTier, setSbTier] = useState(null);
@@ -1610,8 +1607,6 @@ export default function App() {
     setMode(null);
     setPath([]);
     setGenOutlet(null);
-    setRecipe(null);
-    setLocked({});
   }, []);
 
   const showToast = useCallback((msg) => {
@@ -1635,49 +1630,7 @@ export default function App() {
     setShotList(prev => prev.map(s => s.style[0] === styleId ? { ...s, [field]: value } : s));
   }, []);
 
-  const addRecipeToShotList = useCallback(() => {
-    if (!recipe) return;
-    setShotList(prev => {
-      const ids = new Set(prev.map(s => s.style[0]));
-      const newItems = recipe.filter(item => !ids.has(item.style[0])).map(item => ({ style: item.style, subject: "", why: "" }));
-      return [...prev, ...newItems];
-    });
-    showToast(`+ ${recipe.length} styles added`);
-  }, [recipe, showToast]);
 
-  const doGenerate = useCallback((oid) => {
-    const newRecipe = generateRecipe(oid, temperature);
-    if (recipe && Object.keys(locked).length > 0) {
-      const lockedStyles = {};
-      for (const item of recipe) {
-        if (locked[item.slot]) lockedStyles[item.slot] = item;
-      }
-      const merged = newRecipe.map(item => lockedStyles[item.slot] || item);
-      for (const slot of Object.keys(lockedStyles)) {
-        if (!merged.find(m => m.slot === slot)) merged.push(lockedStyles[slot]);
-      }
-      setRecipe(merged);
-    } else {
-      setRecipe(newRecipe);
-    }
-  }, [recipe, locked, temperature]);
-
-  const saveRecipe = useCallback((name) => {
-    if (!recipe || !genOutlet || !name.trim()) return;
-    const coherence = computeCoherence(recipe, genOutlet);
-    setSavedRecipes(prev => [...prev, { name: name.trim(), outlet: genOutlet, recipe: [...recipe], coherence, timestamp: Date.now() }]);
-    setSavingName(null);
-    showToast(`Saved: ${name.trim()}`);
-  }, [recipe, genOutlet, showToast]);
-
-  const toggleLock = useCallback((slotLabel) => {
-    setLocked(prev => {
-      const next = { ...prev };
-      if (next[slotLabel]) delete next[slotLabel];
-      else next[slotLabel] = true;
-      return next;
-    });
-  }, []);
 
   const inList = useCallback((id) => shotList.some(s => s.style[0] === id), [shotList]);
 
@@ -1721,15 +1674,15 @@ export default function App() {
     return (
       <Shell title="Par-A-Dice Content System" crumbs={[]} onBack={null}>
         <div style={grid2}>
+          <Box onClick={() => setMode("storyboard")}>
+            <span style={{ fontSize: 32 }}>🎬</span>
+            <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Generate</div>
+            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Storyboard a full ad</div>
+          </Box>
           <Box onClick={() => setMode("browse")}>
             <span style={{ fontSize: 32 }}>📂</span>
             <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Browse</div>
             <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Explore 1,000 styles</div>
-          </Box>
-          <Box onClick={() => setMode("generate")}>
-            <span style={{ fontSize: 32 }}>🎲</span>
-            <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Generate</div>
-            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Smart content recipe</div>
           </Box>
           <Box onClick={() => setMode("shotlist")}>
             <span style={{ fontSize: 32 }}>📋</span>
@@ -1740,15 +1693,10 @@ export default function App() {
           </Box>
           <Box onClick={() => setMode("saved")}>
             <span style={{ fontSize: 32 }}>💾</span>
-            <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Saved Combos</div>
+            <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Saved</div>
             <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>
               {savedRecipes.length === 0 ? "None yet" : `${savedRecipes.length} saved`}
             </div>
-          </Box>
-          <Box onClick={() => setMode("storyboard")}>
-            <span style={{ fontSize: 32 }}>🎬</span>
-            <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>Storyboard</div>
-            <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>Generate a full ad</div>
           </Box>
         </div>
         {/* Search bar on home */}
@@ -2114,137 +2062,6 @@ export default function App() {
           <div style={{ fontSize: 13, color: "#AAA", lineHeight: 1.6, whiteSpace: "pre-wrap" }}>{storyboard.caption}</div>
         </div>
 
-        <Toast />
-      </Shell>
-    );
-  }
-
-  // GENERATE MODE — pick outlet
-  if (mode === "generate" && !genOutlet) {
-    return (
-      <Shell title="Generate — Pick an Outlet" crumbs={[]} onBack={goHome}>
-        <div style={grid2}>
-          {outlets.map(o => (
-            <Box key={o.id} onClick={() => { setGenOutlet(o.id); doGenerate(o.id); }}>
-              <span style={{ fontSize: 32 }}>{o.icon}</span>
-              <div style={{ fontSize: 16, fontWeight: 600, marginTop: 8 }}>{o.name}</div>
-              <div style={{ fontSize: 12, color: "#999", marginTop: 2 }}>{o.sub}</div>
-            </Box>
-          ))}
-        </div>
-        <Toast />
-      </Shell>
-    );
-  }
-
-  // GENERATE MODE — show recipe
-  if (mode === "generate" && genOutlet && recipe) {
-    const ol = outlets.find(o => o.id === genOutlet);
-    const coherence = computeCoherence(recipe, genOutlet);
-    const tempIdx = Math.min(4, Math.floor(temperature * 5));
-    return (
-      <Shell title={`${ol.icon} ${ol.name} — Recipe`} crumbs={[]} onBack={() => { setGenOutlet(null); setRecipe(null); setLocked({}); setSavingName(null); }}>
-        {/* Coherence bar */}
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-            <span style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "1px" }}>Coherence</span>
-            <span style={{ fontSize: 13, fontWeight: 600, color: coherence > 0.75 ? "#6ABF6A" : coherence > 0.5 ? "#BFA64A" : "#BF6A4A" }}>{Math.round(coherence * 100)}%</span>
-          </div>
-          <div style={{ height: 4, background: "#1A1A1A", borderRadius: 2 }}>
-            <div style={{ height: 4, borderRadius: 2, width: `${coherence * 100}%`, background: coherence > 0.75 ? "#3A7A3A" : coherence > 0.5 ? "#7A6A2A" : "#7A3A2A", transition: "width 0.3s" }} />
-          </div>
-        </div>
-
-        {/* Temperature slider */}
-        <div style={{ marginBottom: 20, background: "#111", borderRadius: 8, padding: "12px 16px", border: "1px solid #1E1E1E" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-            <span style={{ fontSize: 11, color: "#666", textTransform: "uppercase", letterSpacing: "1px" }}>Creativity</span>
-            <span style={{ fontSize: 12, color: "#AAA" }}>{tempLabels[tempIdx]}</span>
-          </div>
-          <input
-            type="range" min="0" max="1" step="0.05" value={temperature}
-            onChange={e => setTemperature(parseFloat(e.target.value))}
-            style={{ width: "100%", accentColor: "#888" }}
-          />
-          <div style={{ display: "flex", justifyContent: "space-between", fontSize: 10, color: "#444", marginTop: 4 }}>
-            <span>Brand Lock</span><span>Wild Card</span>
-          </div>
-        </div>
-
-        {/* Action buttons */}
-        <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap", alignItems: "center" }}>
-          <button onClick={() => doGenerate(genOutlet)} style={generateBtn}>🎲 Reroll</button>
-          <button onClick={addRecipeToShotList} style={generateBtn}>📋 Shot List</button>
-          <button onClick={() => setSavingName("")} style={generateBtn}>💾 Save</button>
-          <span style={{ fontSize: 12, color: "#555" }}>
-            {Object.keys(locked).length > 0 ? `${Object.keys(locked).length} locked` : "tap to lock"}
-          </span>
-        </div>
-
-        {/* Save dialog */}
-        {savingName !== null && (
-          <div style={{ background: "#151515", border: "1px solid #2A2A2A", borderRadius: 8, padding: "14px 16px", marginBottom: 16, display: "flex", gap: 8, alignItems: "center" }}>
-            <input
-              value={savingName}
-              onChange={e => setSavingName(e.target.value)}
-              placeholder="Name this combo..."
-              autoFocus
-              onKeyDown={e => e.key === "Enter" && saveRecipe(savingName)}
-              style={{ ...inputStyle, flex: 1 }}
-            />
-            <button onClick={() => saveRecipe(savingName)} style={{ ...generateBtn, color: "#6ABF6A", borderColor: "#2A4A2A" }}>Save</button>
-            <button onClick={() => setSavingName(null)} style={{ ...generateBtn, color: "#888" }}>Cancel</button>
-          </div>
-        )}
-
-        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          {recipe.map((item, i) => {
-            const isLocked = locked[item.slot];
-            const otherOutlets = item.style[2].split("").map(k => outletKey[k]).filter(o => o !== genOutlet);
-            return (
-              <div
-                key={item.slot + "-" + item.style[0]}
-                style={{
-                  background: isLocked ? "#1A1712" : "#111",
-                  border: `1px solid ${isLocked ? "#4A3A1A" : "#1E1E1E"}`,
-                  borderRadius: 8,
-                  padding: "14px 16px",
-                  display: "flex",
-                  alignItems: "flex-start",
-                  gap: 12,
-                  transition: "all 0.15s",
-                }}
-              >
-                <div
-                  onClick={() => toggleLock(item.slot)}
-                  style={{ minWidth: 28, textAlign: "center", fontSize: 14, marginTop: 1, cursor: "pointer" }}
-                >
-                  {isLocked ? "🔒" : "🔓"}
-                </div>
-                <div style={{ flex: 1, cursor: "pointer" }} onClick={() => toggleLock(item.slot)}>
-                  <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", fontFamily: "monospace" }}>
-                    {item.slot}
-                  </div>
-                  <div style={{ fontSize: 14, fontWeight: 500, marginTop: 4, lineHeight: 1.4 }}>
-                    {item.style[1]}
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 6 }}>
-                    <span style={{ fontSize: 10, color: "#555", fontFamily: "monospace" }}>#{item.style[0]}</span>
-                    {otherOutlets.length > 0 && (
-                      <div style={{ display: "flex", gap: 3 }}>
-                        {otherOutlets.map(o => {
-                          const oo = outlets.find(x => x.id === o);
-                          return <span key={o} style={{ fontSize: 11 }}>{oo?.icon}</span>;
-                        })}
-                      </div>
-                    )}
-                  </div>
-                </div>
-                <AddBtn style={item.style} />
-              </div>
-            );
-          })}
-        </div>
         <Toast />
       </Shell>
     );
