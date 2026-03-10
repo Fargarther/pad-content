@@ -1676,26 +1676,161 @@ function applyMood(brandTarget, moodId) {
   return brandTarget.map((v, i) => Math.max(0, Math.min(1, v + (mood.nudge[i] || 0))));
 }
 
-// === USAGE LEARNING ===
-// Tracks style frequency: { [styleId]: count }
-// Boosts styles the user keeps picking
-function loadUsageData() {
-  try { return JSON.parse(localStorage.getItem("pad-usage") || "{}"); } catch { return {}; }
+// === CONTEXTUAL LEARNING ENGINE ===
+// Each interaction is a signal: { styleId, outlet, mood, beat, timestamp, weight }
+// weight: positive = user picked it, negative = user rejected it (compare loser)
+
+const LEARN_KEY = "pad-learn-v2";
+const DECAY_HALF_LIFE = 14 * 24 * 60 * 60 * 1000; // 14 days
+
+function loadLearningData() {
+  try { return JSON.parse(localStorage.getItem(LEARN_KEY) || '{"signals":[],"version":2}'); }
+  catch { return { signals: [], version: 2 }; }
 }
-function saveUsageData(data) {
-  try { localStorage.setItem("pad-usage", JSON.stringify(data)); } catch {}
+function saveLearningData(data) {
+  try { localStorage.setItem(LEARN_KEY, JSON.stringify(data)); } catch {}
 }
-function recordStyleUsage(styleIds) {
-  const data = loadUsageData();
-  for (const id of styleIds) { data[id] = (data[id] || 0) + 1; }
-  saveUsageData(data);
+
+// Export for git sync
+function exportLearningJSON() {
+  return JSON.stringify(loadLearningData(), null, 2);
 }
-function getUsageBoost(styleId) {
-  const data = loadUsageData();
-  const count = data[styleId] || 0;
-  // Diminishing returns: log scale, max ~0.3 bonus
-  return count > 0 ? Math.min(0.3, Math.log(count + 1) * 0.1) : 0;
+function importLearningJSON(json) {
+  try {
+    const data = JSON.parse(json);
+    if (data.signals && data.version) {
+      // Merge with existing — deduplicate by timestamp
+      const existing = loadLearningData();
+      const existingTs = new Set(existing.signals.map(s => s.ts));
+      const merged = [...existing.signals, ...data.signals.filter(s => !existingTs.has(s.ts))];
+      saveLearningData({ signals: merged, version: 2 });
+      return merged.length;
+    }
+  } catch {}
+  return -1;
 }
+
+// Decay: older signals matter less
+function decayWeight(signal) {
+  const age = Date.now() - (signal.ts || 0);
+  const decay = Math.pow(0.5, age / DECAY_HALF_LIFE);
+  return (signal.w || 1) * decay;
+}
+
+// Record positive signals (user picked these styles)
+function recordStyleUsage(styleIds, context = {}) {
+  const data = loadLearningData();
+  const ts = Date.now();
+  for (const id of styleIds) {
+    data.signals.push({
+      id, // styleId
+      o: context.outlet || null, // outlet
+      m: context.mood || null, // mood
+      b: context.beat || null, // beat type
+      w: context.weight || 1, // signal weight
+      ts,
+    });
+  }
+  // Cap at 5000 signals, prune oldest
+  if (data.signals.length > 5000) {
+    data.signals = data.signals.slice(-4000);
+  }
+  saveLearningData(data);
+}
+
+// Record negative signals (compare loser)
+function recordStylePenalty(styleIds, context = {}) {
+  recordStyleUsage(styleIds, { ...context, weight: -0.5 });
+}
+
+// Get contextual boost for a style given current generation context
+function getUsageBoost(styleId, context = {}) {
+  const data = loadLearningData();
+  if (data.signals.length === 0) return 0;
+
+  let score = 0;
+  for (const sig of data.signals) {
+    if (sig.id !== styleId) continue;
+    let relevance = 1;
+    // Context match bonuses
+    if (context.outlet && sig.o === context.outlet) relevance += 0.5;
+    if (context.mood && sig.m === context.mood) relevance += 0.3;
+    if (context.beat && sig.b === context.beat) relevance += 0.2;
+    score += decayWeight(sig) * relevance;
+  }
+  // Normalize: cap at ±0.3
+  return Math.max(-0.15, Math.min(0.3, score * 0.05));
+}
+
+// Get taste profile summary for display
+function getTasteProfile() {
+  const data = loadLearningData();
+  if (data.signals.length === 0) return null;
+
+  const totalSignals = data.signals.length;
+  const positiveSignals = data.signals.filter(s => (s.w || 1) > 0).length;
+  const uniqueStyles = new Set(data.signals.map(s => s.id)).size;
+
+  // Top styles by decayed weight
+  const styleScores = {};
+  for (const sig of data.signals) {
+    const dw = decayWeight(sig);
+    styleScores[sig.id] = (styleScores[sig.id] || 0) + dw;
+  }
+  const topStyles = Object.entries(styleScores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 10)
+    .map(([id]) => S.find(s => s[0] === parseInt(id)))
+    .filter(Boolean);
+
+  // Outlet preferences
+  const outletScores = {};
+  for (const sig of data.signals) {
+    if (sig.o) outletScores[sig.o] = (outletScores[sig.o] || 0) + decayWeight(sig);
+  }
+
+  // Mood preferences
+  const moodScores = {};
+  for (const sig of data.signals) {
+    if (sig.m) moodScores[sig.m] = (moodScores[sig.m] || 0) + decayWeight(sig);
+  }
+
+  // Category tendencies
+  const catScores = {};
+  for (const sig of data.signals) {
+    const cat = categories.find(c => sig.id >= c.range[0] && sig.id <= c.range[1]);
+    if (cat) catScores[cat.id] = (catScores[cat.id] || 0) + decayWeight(sig);
+  }
+  const topCats = Object.entries(catScores)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([id]) => categories.find(c => c.id === parseInt(id)))
+    .filter(Boolean);
+
+  // Oldest signal age
+  const oldest = data.signals.length > 0 ? Math.min(...data.signals.map(s => s.ts)) : Date.now();
+  const daysSinceFirst = Math.floor((Date.now() - oldest) / (24 * 60 * 60 * 1000));
+
+  return { totalSignals, positiveSignals, uniqueStyles, topStyles, outletScores, moodScores, topCats, daysSinceFirst };
+}
+
+// Legacy migration: convert old pad-usage to v2
+(function migrateLegacy() {
+  try {
+    const old = JSON.parse(localStorage.getItem("pad-usage") || "null");
+    if (old && typeof old === "object" && !old.version) {
+      const data = loadLearningData();
+      const ts = Date.now() - 86400000; // backdate 1 day
+      for (const [id, count] of Object.entries(old)) {
+        for (let i = 0; i < Math.min(count, 10); i++) {
+          data.signals.push({ id: parseInt(id), o: null, m: null, b: null, w: 1, ts: ts + i });
+        }
+      }
+      saveLearningData(data);
+      localStorage.removeItem("pad-usage");
+    }
+  } catch {}
+})();
 
 // Persistence helper
 function usePersistedState(key, defaultVal) {
@@ -1851,7 +1986,7 @@ const durationTiers = [
 function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
 // Pick a style from specific categories for a given outlet, respecting the smart engine
-function pickStyleForShot(outletId, catIds, existing, temperature, moodId) {
+function pickStyleForShot(outletId, catIds, existing, temperature, moodId, beatKey) {
   const key = { tl: "t", wb: "w", nd: "n", pad: "p" }[outletId];
   const brandTarget = applyMood(brandTargets[outletId], moodId);
   const pool = [];
@@ -1870,7 +2005,7 @@ function pickStyleForShot(outletId, catIds, existing, temperature, moodId) {
     const brand = cosine(prof, brandTarget);
     let harmony = 1;
     if (existingProfiles.length > 0) harmony = cosine(prof, centroid(existingProfiles));
-    const usage = getUsageBoost(s[0]);
+    const usage = getUsageBoost(s[0], { outlet: outletId, mood: moodId, beat: beatKey });
     return brand * 0.45 + harmony * 0.45 + usage * 0.1;
   });
   return weightedPick(safe, scores, temperature || 0.4);
@@ -1903,9 +2038,9 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
   // Build shots
   const shots = beats.map((beatKey, i) => {
     const beat = shotBeats[beatKey];
-    const camera = pickStyleForShot(outletId, beat.catPri, allPicked, temp, moodId);
+    const camera = pickStyleForShot(outletId, beat.catPri, allPicked, temp, moodId, beatKey);
     if (camera) allPicked.push(camera);
-    const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp, moodId);
+    const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp, moodId, beatKey);
     if (support) allPicked.push(support);
 
     // Venue-aware shot descriptions
@@ -2159,11 +2294,150 @@ export default function App() {
           />
         </div>
         {/* Learning indicator */}
-        {(() => { const d = loadUsageData(); const total = Object.values(d).reduce((a, b) => a + b, 0); return total > 0 ? (
-          <div style={{ marginTop: 12, fontSize: 10, color: "#333", textAlign: "center" }}>
-            🧠 {total} interaction{total !== 1 ? "s" : ""} learned · generation adapts to your taste
+        {(() => { const p = getTasteProfile(); return p ? (
+          <div style={{ marginTop: 12, textAlign: "center" }}>
+            <span onClick={() => setMode("taste")} style={{ fontSize: 10, color: "#444", cursor: "pointer", textDecoration: "underline", textDecorationColor: "#222" }}>
+              🧠 {p.totalSignals} signals · {p.uniqueStyles} styles learned · {p.daysSinceFirst}d of history
+            </span>
           </div>
         ) : null; })()}
+        <Toast />
+      </Shell>
+    );
+  }
+
+  // TASTE PROFILE VIEW
+  if (mode === "taste") {
+    const profile = getTasteProfile();
+    const fileInputRef = useRef(null);
+    return (
+      <Shell title="Your Taste Profile" crumbs={[]} onBack={goHome} onHome={goHome}>
+        {!profile ? (
+          <div style={{ color: "#555", fontSize: 14, padding: "40px 0", textAlign: "center" }}>
+            <div style={{ fontSize: 32, marginBottom: 12 }}>🧠</div>
+            <div>No data yet. Generate storyboards and add styles to start learning.</div>
+          </div>
+        ) : (
+          <>
+            {/* Stats bar */}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 10, marginBottom: 20 }}>
+              {[
+                [profile.totalSignals, "Signals"],
+                [profile.uniqueStyles, "Unique Styles"],
+                [`${profile.daysSinceFirst}d`, "History"],
+              ].map(([val, label], i) => (
+                <div key={i} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 8, padding: "14px 12px", textAlign: "center" }}>
+                  <div style={{ fontSize: 20, fontWeight: 700 }}>{val}</div>
+                  <div style={{ fontSize: 10, color: "#666", marginTop: 4, textTransform: "uppercase", letterSpacing: "1px" }}>{label}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Top categories */}
+            {profile.topCats.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Strongest Categories</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {profile.topCats.map((cat, i) => (
+                    <div key={cat.id} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 6, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "#333", fontFamily: "monospace", minWidth: 20 }}>{i + 1}</span>
+                      <span style={{ fontSize: 13 }}>{cat.name}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Top styles */}
+            {profile.topStyles.length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Most-Picked Styles</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                  {profile.topStyles.map((s, i) => (
+                    <div key={s[0]} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 6, padding: "8px 12px", display: "flex", alignItems: "center", gap: 8 }}>
+                      <span style={{ fontSize: 14, fontWeight: 700, color: "#333", fontFamily: "monospace", minWidth: 20 }}>{i + 1}</span>
+                      <span style={{ fontSize: 11, color: "#555", fontFamily: "monospace" }}>#{s[0]}</span>
+                      <span style={{ fontSize: 13 }}>{s[1]}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Outlet preferences */}
+            {Object.keys(profile.outletScores).length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Outlet Activity</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {Object.entries(profile.outletScores).sort((a, b) => b[1] - a[1]).map(([id, score]) => {
+                    const ol = outlets.find(o => o.id === id);
+                    return ol ? (
+                      <div key={id} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 6, padding: "8px 14px", textAlign: "center" }}>
+                        <div style={{ fontSize: 20 }}>{ol.icon}</div>
+                        <div style={{ fontSize: 11, marginTop: 4 }}>{ol.name}</div>
+                        <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{Math.round(score * 10) / 10}</div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Mood preferences */}
+            {Object.keys(profile.moodScores).length > 0 && (
+              <div style={{ marginBottom: 20 }}>
+                <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 8 }}>Mood Tendencies</div>
+                <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                  {Object.entries(profile.moodScores).sort((a, b) => b[1] - a[1]).map(([id, score]) => {
+                    const m = moods.find(x => x.id === id);
+                    return m ? (
+                      <div key={id} style={{ background: "#111", border: "1px solid #1E1E1E", borderRadius: 6, padding: "8px 14px", textAlign: "center" }}>
+                        <div style={{ fontSize: 20 }}>{m.icon}</div>
+                        <div style={{ fontSize: 11, marginTop: 4 }}>{m.name}</div>
+                        <div style={{ fontSize: 10, color: "#555", marginTop: 2 }}>{Math.round(score * 10) / 10}</div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Export / Import */}
+            <div style={{ marginTop: 24, paddingTop: 16, borderTop: "1px solid #1A1A1A" }}>
+              <div style={{ fontSize: 10, color: "#666", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10 }}>Sync Across Devices</div>
+              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+                <button onClick={() => {
+                  const json = exportLearningJSON();
+                  const blob = new Blob([json], { type: "application/json" });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement("a"); a.href = url; a.download = "pad-taste-profile.json"; a.click();
+                  URL.revokeObjectURL(url);
+                  showToast("Exported taste profile");
+                }} style={generateBtn}>📤 Export</button>
+                <button onClick={() => fileInputRef.current?.click()} style={generateBtn}>📥 Import</button>
+                <input ref={fileInputRef} type="file" accept=".json" style={{ display: "none" }} onChange={e => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const reader = new FileReader();
+                  reader.onload = () => {
+                    const count = importLearningJSON(reader.result);
+                    if (count >= 0) showToast(`Imported — ${count} total signals`);
+                    else showToast("Invalid file");
+                  };
+                  reader.readAsText(file);
+                  e.target.value = "";
+                }} />
+                <button onClick={() => {
+                  if (confirm("Clear all learning data? This cannot be undone.")) {
+                    saveLearningData({ signals: [], version: 2 });
+                    showToast("Learning data cleared");
+                  }
+                }} style={{ ...generateBtn, color: "#AA5555", borderColor: "#442222" }}>🗑️ Reset</button>
+              </div>
+              <div style={{ fontSize: 10, color: "#333", marginTop: 8 }}>Export your profile, commit to the repo, import on another device. Merges automatically.</div>
+            </div>
+          </>
+        )}
         <Toast />
       </Shell>
     );
@@ -2463,9 +2737,12 @@ export default function App() {
                 }
               });
             });
-            // Record usage for learning
-            const allIds = storyboard.shots.flatMap(sh => sh.styles.map(s => s[0]));
-            recordStyleUsage(allIds);
+            // Record usage for learning with context
+            storyboard.shots.forEach(sh => {
+              sh.styles.forEach(s => {
+                recordStyleUsage([s[0]], { outlet: sbOutlet, mood: sbMood, beat: sh.beat.toLowerCase() });
+              });
+            });
             showToast(`Added ${storyboard.shots.reduce((a, sh) => a + sh.styles.length, 0)} styles to shot list`);
           }} style={generateBtn}>📋 → Shot List</button>
           <button onClick={() => {
@@ -2724,14 +3001,24 @@ export default function App() {
           <div style={{ fontSize: 10, color: "#555", textTransform: "uppercase", letterSpacing: "1px", marginBottom: 10, textAlign: "center" }}>Pick the winner — the system learns your preference</div>
           <div style={{ display: "flex", gap: 10, justifyContent: "center" }}>
             <button onClick={() => {
-              const ids = storyboard.shots.flatMap(sh => sh.styles.map(s => s[0]));
-              recordStyleUsage(ids); recordStyleUsage(ids); // double-weight winner
+              // Winner: double-weight positive with context
+              storyboard.shots.forEach(sh => sh.styles.forEach(s => {
+                recordStyleUsage([s[0]], { outlet: sbOutlet, mood: sbMood, beat: sh.beat.toLowerCase(), weight: 2 });
+              }));
+              // Loser: penalty
+              compareBoard.shots.forEach(sh => sh.styles.forEach(s => {
+                recordStylePenalty([s[0]], { outlet: sbOutlet, mood: sbMood, beat: sh.beat.toLowerCase() });
+              }));
               setCompareBoard(null); setMode("storyboard");
               showToast("✓ Treatment A wins — preferences updated");
             }} style={{ ...generateBtn, color: "#6A8FBF", borderColor: "#2A3A5A" }}>🏆 A wins</button>
             <button onClick={() => {
-              const ids = compareBoard.shots.flatMap(sh => sh.styles.map(s => s[0]));
-              recordStyleUsage(ids); recordStyleUsage(ids);
+              compareBoard.shots.forEach(sh => sh.styles.forEach(s => {
+                recordStyleUsage([s[0]], { outlet: sbOutlet, mood: sbMood, beat: sh.beat.toLowerCase(), weight: 2 });
+              }));
+              storyboard.shots.forEach(sh => sh.styles.forEach(s => {
+                recordStylePenalty([s[0]], { outlet: sbOutlet, mood: sbMood, beat: sh.beat.toLowerCase() });
+              }));
               setStoryboard(compareBoard); setCompareBoard(null); setMode("storyboard");
               showToast("✓ Treatment B wins — preferences updated");
             }} style={{ ...generateBtn, color: "#BFA64A", borderColor: "#5A4A1A" }}>🏆 B wins</button>
