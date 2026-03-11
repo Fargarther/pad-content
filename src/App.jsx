@@ -2049,6 +2049,266 @@ function fuzzyMatch(query, text) {
   return qi === q.length ? 1 : 0;
 }
 
+// === EDITORIAL INTELLIGENCE LAYER ===
+
+// Tag vocabulary — controlled terms per facet
+const TAG_VOCAB = {
+  subject: ["food","drink","people","space","gear","brand","gaming","river","hotel","bts","social"],
+  energy: ["still","slow","med","fast","burst"],
+  distance: ["macro","close","med","wide","aerial","immersive"],
+  sense: ["visual","tactile","audio","thermal","motion","aroma"],
+  role: ["est","init","pro","peak","rel"], // Establisher, Initial, Prolongation, Peak, Release
+};
+
+// Keyword → tag mappings for runtime inference
+const TAG_RULES = [
+  // Subject
+  [/pizza|burger|steak|rib|lobster|shrimp|salad|sandwich|wrap|dish|plate|food|appetizer|brûlée|cake|fries|wings|nachos|pretzel|soup|brisket|filet|bass/i, "food"],
+  [/cocktail|beer|wine|pour|drink|glass|bottle|bourbon|scotch|margarita|IPA|draft|coffee|tea|soda/i, "drink"],
+  [/crowd|guest|server|bartender|chef|couple|people|friend|staff|dealer|host|singer|band|performer/i, "people"],
+  [/room|floor|venue|lobby|entrance|building|architecture|ceiling|hallway|exterior|interior|patio|booth|bar top|dining/i, "space"],
+  [/camera|lens|gimbal|drone|tripod|slider|gear|rig|light kit/i, "gear"],
+  [/logo|brand|badge|reward|loyalty|Boyd|marquee|signage/i, "brand"],
+  [/slot|table|chip|dice|card|poker|roulette|craps|jackpot|casino|sportsbook|FanDuel|gaming|blackjack|baccarat/i, "gaming"],
+  [/river|waterfront|dock|boat|riverboat|barge|wake|shore/i, "river"],
+  [/hotel|suite|check.?in|lobby|elevator|room|valet|shuttle/i, "hotel"],
+  [/BTS|behind|setup|bloopers|outtakes|raw|making|process|edit|workflow|gear laid/i, "bts"],
+  [/poll|swipe|duet|stitch|TikTok|Instagram|carousel|story|caption|challenge|POV|ASMR.*first/i, "social"],
+  // Energy
+  [/slow.?mo|slow|gentle|soft|ambient|steady|calm|peaceful|deliberate|subtle/i, "slow"],
+  [/burst|flash|quick|snap|smash|whip|strobe|staccato|rapid/i, "burst"],
+  [/fast|speed|rush|quick|energy|dynamic|rapid|sprint/i, "fast"],
+  [/time.?lapse|hyperlapse|timelapse/i, "med"],
+  // Distance
+  [/macro|extreme close|ECU|micro|tight on/i, "macro"],
+  [/close.?up|close|detail|texture|hands/i, "close"],
+  [/wide|full|establishing|property|panoram|sweep/i, "wide"],
+  [/aerial|drone|overhead|bird|fly.?through|altitude|orbit/i, "aerial"],
+  [/360|immersive|VR|surround|tiny planet/i, "immersive"],
+  // Sense
+  [/ASMR|sound|audio|beat|music|whisper|sizzle|crunch|clink/i, "audio"],
+  [/thermal|heat|infrared|temperature|IR/i, "thermal"],
+  [/texture|grain|surface|feel|touch|condensation|steam/i, "tactile"],
+  [/motion|movement|tracking|follow|pan|dolly|orbit|gimbal|handheld/i, "motion"],
+  [/glow|neon|light|candle|shadow|golden|silhouette|bokeh|flare/i, "visual"],
+];
+
+// Role inference from category ID
+const CAT_ROLE_MAP = {
+  1: "pro", 2: "init", 3: "pro", 4: "pro", 5: "pro", 6: "pro",
+  7: "peak", 8: "pro", 9: "init", 10: "pro", 11: "pro",
+  12: "peak", 13: "est", 14: "pro", 15: "pro", 16: "pro",
+  17: "pro", 18: "rel", 19: "est", 20: "est", 21: "pro",
+  22: "peak", 23: "pro", 24: "pro", 25: "rel",
+  26: "est", 27: "peak", 28: "est", 29: "rel", 30: "est",
+};
+
+// Distance inference from category
+const CAT_DISTANCE_MAP = {
+  1: "close", 6: "macro", 7: "close", 12: "close", 13: "wide",
+  14: "med", 19: "aerial", 20: "immersive", 22: "med",
+  26: "wide", 27: "med", 28: "wide", 30: "wide",
+};
+
+// Infer tags for a style at runtime
+function inferTags(style) {
+  const [id, name, outlets] = style;
+  const catId = categories.find(c => id >= c.range[0] && id <= c.range[1])?.id || 1;
+  const tags = new Set();
+
+  // Apply keyword rules
+  for (const [regex, tag] of TAG_RULES) {
+    if (regex.test(name)) tags.add(tag);
+  }
+
+  // Ensure at least one subject tag
+  if (!["food","drink","people","space","gear","brand","gaming","river","hotel","bts","social"].some(t => tags.has(t))) {
+    if (catId >= 601 && catId <= 670) tags.add("food");
+    else if (catId >= 1231 && catId <= 1270) tags.add("gaming");
+    else tags.add("visual");
+  }
+
+  // Add role from category
+  tags.add(CAT_ROLE_MAP[catId] || "pro");
+
+  // Add distance from category or default
+  tags.add(CAT_DISTANCE_MAP[catId] || "med");
+
+  // Energy from category profile
+  const pace = (catProfiles[catId] || [0.5])[0];
+  if (pace < 0.3) tags.add("slow");
+  else if (pace < 0.55) tags.add("med");
+  else if (pace < 0.75) tags.add("fast");
+  else tags.add("burst");
+
+  return [...tags];
+}
+
+// Build inverted index: tag → Set of style IDs
+let _tagIndex = null;
+let _styleTags = null;
+function getTagIndex() {
+  if (_tagIndex) return { index: _tagIndex, styleTags: _styleTags };
+  _tagIndex = {};
+  _styleTags = {};
+  for (const s of S) {
+    const tags = inferTags(s);
+    _styleTags[s[0]] = tags;
+    for (const t of tags) {
+      if (!_tagIndex[t]) _tagIndex[t] = new Set();
+      _tagIndex[t].add(s[0]);
+    }
+  }
+  return { index: _tagIndex, styleTags: _styleTags };
+}
+
+// Jaccard similarity between two styles' tag sets
+function jaccardSim(idA, idB) {
+  const { styleTags } = getTagIndex();
+  const a = styleTags[idA] || [];
+  const b = styleTags[idB] || [];
+  const setA = new Set(a);
+  const setB = new Set(b);
+  const intersection = a.filter(t => setB.has(t)).length;
+  const union = new Set([...a, ...b]).size;
+  return union > 0 ? intersection / union : 0;
+}
+
+// Max similarity of a candidate to any already-selected style
+function maxSimToSelected(candidateId, selectedIds) {
+  if (selectedIds.length === 0) return 0;
+  let maxSim = 0;
+  for (const sid of selectedIds) {
+    const sim = jaccardSim(candidateId, sid);
+    if (sim > maxSim) maxSim = sim;
+  }
+  return maxSim;
+}
+
+// Transition affinity — how well does style B follow style A?
+const DISTANCE_ORDER = ["macro", "close", "med", "wide", "aerial", "immersive"];
+function transitionAffinity(prevStyle, candStyle) {
+  if (!prevStyle) return 1;
+  const { styleTags } = getTagIndex();
+  const prevTags = styleTags[prevStyle[0]] || [];
+  const candTags = styleTags[candStyle[0]] || [];
+
+  let score = 0.5; // baseline
+
+  // Distance variety bonus — adjacent distances score well, same = penalty
+  const prevDist = DISTANCE_ORDER.findIndex(d => prevTags.includes(d));
+  const candDist = DISTANCE_ORDER.findIndex(d => candTags.includes(d));
+  if (prevDist >= 0 && candDist >= 0) {
+    const diff = Math.abs(prevDist - candDist);
+    if (diff === 0) score -= 0.2; // same framing = static
+    else if (diff === 1) score += 0.15; // adjacent = natural
+    else if (diff === 2) score += 0.1; // moderate jump = dynamic
+    else score -= 0.05; // extreme jump = jarring (slight penalty)
+  }
+
+  // Energy variation — encourage alternation
+  const energyTags = ["still", "slow", "med", "fast", "burst"];
+  const prevE = energyTags.findIndex(e => prevTags.includes(e));
+  const candE = energyTags.findIndex(e => candTags.includes(e));
+  if (prevE >= 0 && candE >= 0) {
+    const diff = Math.abs(prevE - candE);
+    if (diff === 0) score -= 0.1; // same energy = monotone
+    else if (diff === 1) score += 0.1; // step change = flow
+    else score += 0.05; // bigger change = okay but less natural
+  }
+
+  // Subject diversity — don't repeat the same subject back to back
+  const subjects = ["food","drink","people","space","gear","brand","gaming","river","hotel","bts","social"];
+  const prevSubj = subjects.filter(s => prevTags.includes(s));
+  const candSubj = subjects.filter(s => candTags.includes(s));
+  const overlap = prevSubj.filter(s => candSubj.includes(s));
+  if (overlap.length > 0 && prevSubj.length > 0) score -= 0.15; // same subject = redundant
+
+  return Math.max(0, Math.min(1, score));
+}
+
+// VNG (Visual Narrative Grammar) arc templates
+// Each arc is a sequence of narrative roles: E=Establisher, I=Initial, L=Prolongation, P=Peak, R=Release
+const VNG_ARCS = {
+  quick:    [["I","P","R"], ["P","L","R"], ["I","L","P","R"]],
+  short:    [["E","I","L","P","R"], ["I","L","L","P","R"], ["E","I","P","L","R"]],
+  standard: [["E","I","L","L","P","L","R"], ["E","I","L","P","L","P","R"], ["I","L","L","P","L","L","R"]],
+  long:     [["E","I","L","L","P","L","L","P","R"], ["E","I","L","P","L","L","P","L","R"], ["E","E","I","L","L","P","L","L","P","R"]],
+};
+
+// Map VNG roles to beat types for style selection
+const VNG_TO_BEAT = {
+  E: "space",    // Establisher → wide/ambient
+  I: "hook",     // Initial → attention-grabbing
+  L: "detail",   // Prolongation → building texture
+  P: "hero",     // Peak → money shot
+  R: "closer",   // Release → resolution/CTA
+};
+
+// Enhanced style picker with full editorial intelligence
+function pickStyleSmart(outletId, beatKey, vngRole, existing, temperature, moodId, prevStyle) {
+  const key = { tl: "t", wb: "w", nd: "n", bb: "b", pad: "p" }[outletId];
+  const brandTarget = applyMood(brandTargets[outletId], moodId);
+  const beat = shotBeats[beatKey];
+  if (!beat) return null;
+
+  // Gather pool from beat's categories
+  const pool = [];
+  for (const catId of [...beat.catPri, ...beat.catSec]) {
+    const cat = categories.find(c => c.id === catId);
+    if (cat) pool.push(...S.filter(s => s[2].includes(key) && s[0] >= cat.range[0] && s[0] <= cat.range[1]));
+  }
+  if (pool.length === 0) return null;
+
+  // Hard conflict filter
+  const safe = pool.filter(c => !existing.some(e => hasConflict(c, e)));
+  if (safe.length === 0) return pick(pool);
+
+  const { styleTags } = getTagIndex();
+  const selectedIds = existing.map(s => s[0]);
+
+  // Multi-objective scoring
+  const scores = safe.map(s => {
+    const prof = getStyleProfile(s);
+    const tags = styleTags[s[0]] || [];
+
+    // 1. Brand alignment (cosine on profiles)
+    const brandScore = cosine(prof, brandTarget);
+
+    // 2. VNG role match — does this style's inferred role match the grammar position?
+    const roleTag = { E: "est", I: "init", L: "pro", P: "peak", R: "rel" }[vngRole] || "pro";
+    const roleMatch = tags.includes(roleTag) ? 1 : 0.5;
+
+    // 3. Transition affinity — how well does this follow the previous shot?
+    const transition = transitionAffinity(prevStyle, s);
+
+    // 4. MMR diversity — penalize similarity to already-selected styles
+    const mmrPenalty = maxSimToSelected(s[0], selectedIds);
+
+    // 5. Usage learning boost
+    const usage = getUsageBoost(s[0], { outlet: outletId, mood: moodId, beat: beatKey });
+
+    // Weighted combination — weights shift with temperature
+    // Low temp = brand-heavy, High temp = diversity-heavy
+    const bw = 0.30 - temperature * 0.1;  // brand weight: 0.20–0.30
+    const rw = 0.15;                        // role match: fixed
+    const tw = 0.20;                        // transition: fixed
+    const dw = 0.20 + temperature * 0.1;   // diversity: 0.20–0.30
+    const uw = 0.05;                        // usage learning
+    const hw = 0.10;                        // harmony with existing
+
+    let harmony = 1;
+    const existingProfiles = existing.map(e => getStyleProfile(e));
+    if (existingProfiles.length > 0) harmony = cosine(prof, centroid(existingProfiles));
+
+    return (brandScore * bw) + (roleMatch * rw) + (transition * tw) - (mmrPenalty * dw) + (usage * uw) + (harmony * hw);
+  });
+
+  return weightedPick(safe, scores.map(s => Math.max(s, 0.01)), temperature || 0.4);
+}
+
+// === END EDITORIAL INTELLIGENCE LAYER ===
+
 // === STORYBOARD ENGINE ===
 
 // Shot beats define the narrative arc of an ad
@@ -2241,6 +2501,12 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
   const tier = durationTiers.find(t => t.id === tierId) || durationTiers[1];
   const beats = structure.beatsByTier[tier.id] || structure.beatsByTier.short;
 
+  // Select VNG narrative arc for structural variety
+  const vngArcs = VNG_ARCS[tier.id] || VNG_ARCS.short;
+  const vngArc = pick(vngArcs);
+  // Pad or trim VNG arc to match beat count
+  const arcRoles = beats.map((_, i) => vngArc[Math.min(i, vngArc.length - 1)]);
+
   const subject = pick(structure.subjects);
   const hook = pick(structure.hooks);
   const cta = pick(structure.ctas);
@@ -2249,7 +2515,6 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
   // Calculate durations
   const [minDur, maxDur] = tier.range;
   const targetDur = minDur + Math.random() * (maxDur - minDur);
-  const numBeats = beats.length;
   const rawDurs = beats.map(b => {
     const beat = shotBeats[b];
     const [lo, hi] = beat.durRange;
@@ -2259,12 +2524,16 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
   const scale = targetDur / rawTotal;
   const durations = rawDurs.map(d => Math.max(0.5, Math.round(d * scale * 10) / 10));
 
-  // Build shots
+  // Build shots using editorial intelligence
   const shots = beats.map((beatKey, i) => {
     const beat = shotBeats[beatKey];
-    const camera = pickStyleForShot(outletId, beat.catPri, allPicked, temp, moodId, beatKey);
+    const vngRole = arcRoles[i] || "L";
+    const prevStyle = allPicked.length > 0 ? allPicked[allPicked.length - 1] : null;
+
+    // Use smart picker with VNG role awareness and transition scoring
+    const camera = pickStyleSmart(outletId, beatKey, vngRole, allPicked, temp, moodId, prevStyle);
     if (camera) allPicked.push(camera);
-    const support = pickStyleForShot(outletId, beat.catSec, allPicked, temp, moodId, beatKey);
+    const support = pickStyleSmart(outletId, beatKey, vngRole, allPicked, temp, moodId, camera || prevStyle);
     if (support) allPicked.push(support);
 
     // Venue-aware shot descriptions
@@ -2340,6 +2609,7 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
     return {
       num: i + 1,
       beat: beat.role,
+      vngRole: vngRole,
       duration: durations[i],
       action,
       intent,
@@ -2349,6 +2619,7 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
   });
 
   const totalDuration = durations.reduce((a, b) => a + b, 0);
+  const vngLabel = arcRoles.join("→");
 
   // Generate caption
   const captions = {
@@ -2382,6 +2653,7 @@ function generateStoryboard(outletId, temp, tierId, moodId) {
     caption: pick(captions[outletId] || captions.pad),
     totalDuration: Math.round(totalDuration * 10) / 10,
     shotCount: shots.length,
+    narrativeArc: vngLabel,
     shots,
     coherence: computeCoherence(shots.map(sh => sh.styles.map(s => ({ style: s, slot: "" }))).flat(), outletId),
   };
@@ -2943,6 +3215,11 @@ export default function App() {
             Subject: <span style={{ color: "#AAA" }}>{storyboard.subject}</span> · {storyboard.totalDuration}s · {storyboard.shotCount} shots
             {sbMood && (() => { const m = moods.find(x => x.id === sbMood); return m ? <span> · {m.icon} {m.name}</span> : null; })()}
           </div>
+          {storyboard.narrativeArc && (
+            <div style={{ fontSize: 10, color: "#444", marginTop: 4, fontFamily: "monospace", letterSpacing: "1px" }}>
+              Arc: {storyboard.narrativeArc}
+            </div>
+          )}
         </div>
 
         {/* Temperature */}
@@ -2976,7 +3253,9 @@ export default function App() {
           <button onClick={() => {
             let text = `🎬 ${ol.name} AD STORYBOARD\n`;
             text += `Hook: "${storyboard.hook}"\n`;
-            text += `Subject: ${storyboard.subject} · ${storyboard.totalDuration}s\n\n`;
+            text += `Subject: ${storyboard.subject} · ${storyboard.totalDuration}s\n`;
+            if (storyboard.narrativeArc) text += `Narrative Arc: ${storyboard.narrativeArc}\n`;
+            text += `\n`;
             storyboard.shots.forEach(sh => {
               text += `SHOT ${sh.num} — ${sh.beat} (${sh.duration}s)\n`;
               text += `  ${sh.action}\n`;
@@ -3030,6 +3309,7 @@ export default function App() {
                 <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                   <span style={{ fontSize: 18, fontWeight: 700, color: "#333", fontFamily: "monospace" }}>{sh.num}</span>
                   <span style={{ fontSize: 10, color: "#888", textTransform: "uppercase", letterSpacing: "1px", background: "#1A1A1A", padding: "2px 8px", borderRadius: 4 }}>{sh.beat}</span>
+                  {sh.vngRole && <span style={{ fontSize: 9, color: "#555", fontFamily: "monospace", background: "#0F0F0F", padding: "2px 6px", borderRadius: 3 }}>{({E:"Est",I:"Init",L:"Pro",P:"Peak",R:"Rel"})[sh.vngRole]}</span>}
                 </div>
                 <span style={{ fontSize: 11, color: "#555", fontFamily: "monospace" }}>{sh.duration}s</span>
               </div>
